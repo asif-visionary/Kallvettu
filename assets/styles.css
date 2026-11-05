@@ -1,0 +1,203 @@
+/* Ancient Inscription & Restoration Translation - Theme Stylesheet */
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Mukta+Malar:wght@400;600;700&family=Outfit:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg-primary: #0d1117;
+  --bg-secondary: #161b22;
+  --card-bg: #1c2128;
+  --card-border: #30363d;
+  --gold-primary: #d4af37;
+  --gold-glow: rgba(212, 175, 55, 0.25);
+  --gold-light: #f3e5ab;
+  --text-main: #f0f6fc;
+  --text-muted: #8b949e;
+  --stone-accent: #2d333b;
+  --terracotta: #c85a17;
+}
+
+/* Main Container Customization */
+.main .block-container {
+  padding-top: 2rem;
+  padding-bottom: 4rem;
+  max-width: 1250px;
+}
+
+/* Header Banner */
+.epigraph-header {
+  background: linear-gradient(135deg, #1a1612 0%, #2a221b 50%, #15181e 100%);
+  border: 1px solid #4a3b2c;
+  border-radius: 16px;
+  padding: 2.2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 0 40px rgba(212, 175, 55, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.epigraph-header::before {
+  content: "❖ கல்வெட்டு ❖";
+  position: absolute;
+  top: 12px;
+  right: 24px;
+  color: rgba(212, 175, 55, 0.2);
+  font-family: 'Cinzel', serif;
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+}
+
+.header-title-en {
+  font-family: 'Cinzel', serif;
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #f7e7ce;
+  letter-spacing: 1.5px;
+  margin: 0;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+}
+
+.header-title-ta {
+  font-family: 'Mukta Malar', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gold-primary);
+  margin-top: 0.3rem;
+  margin-bottom: 0.8rem;
+}
+
+.header-subtitle {
+  color: #c9d1d9;
+  font-size: 1rem;
+  line-height: 1.6;
+  max-width: 850px;
+}
+
+/* Badges */
+.badge-container {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.script-badge {
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  color: #f3e5ab;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Section Cards */
+.result-card {
+  background: #181d24;
+  border: 1px solid #30363d;
+  border-radius: 12px;
+  padding: 1.4rem;
+  margin-bottom: 1.2rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.result-card:hover {
+  border-color: #586069;
+}
+
+.card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--gold-primary);
+  margin-bottom: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.transcription-box {
+  background: #0f1318;
+  border-left: 4px solid var(--gold-primary);
+  padding: 1rem 1.2rem;
+  border-radius: 0 8px 8px 0;
+  font-size: 1.15rem;
+  line-height: 1.8;
+  color: #e6edf3;
+  margin: 0.8rem 0;
+  font-family: 'Mukta Malar', sans-serif;
+}
+
+.weathered-tag {
+  color: #ff7b72;
+  font-weight: 700;
+  background: rgba(255, 123, 114, 0.12);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.restored-tag {
+  color: #7ee787;
+  font-weight: 700;
+  background: rgba(126, 231, 135, 0.12);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.translation-box-ta {
+  background: rgba(212, 175, 55, 0.06);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  padding: 1.2rem;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: #f0f6fc;
+}
+
+.translation-box-en {
+  background: rgba(56, 189, 248, 0.06);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  padding: 1.2rem;
+  border-radius: 10px;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: #f0f6fc;
+}
+
+.meaning-box {
+  background: #14181f;
+  border: 1px solid #282e38;
+  border-radius: 10px;
+  padding: 1.2rem;
+  line-height: 1.75;
+  color: #c9d1d9;
+}
+
+/* Metadata Grid */
+.meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 1.2rem;
+}
+
+.meta-item {
+  background: #12161c;
+  border: 1px solid #282f3a;
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.meta-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: #8b949e;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.meta-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #e6edf3;
+}
