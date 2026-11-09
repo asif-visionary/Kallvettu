@@ -1,0 +1,22 @@
+character_id,inscription_id,script,character_label,unicode_equivalent,ymin,xmin,ymax,xmax,damage_condition,alternative_readings,verified_by
+TB_CHR_0001,TB_MGL_001,Tamil-Brahmi,ka,க,0.12,0.05,0.22,0.10,intact,ka,Epigraphist_ASI
+TB_CHR_0002,TB_MGL_001,Tamil-Brahmi,ni,ணி,0.13,0.11,0.23,0.17,light_weathering,ni,Epigraphist_ASI
+TB_CHR_0003,TB_MGL_001,Tamil-Brahmi,y,ய்,0.11,0.18,0.21,0.24,intact,y,Epigraphist_ASI
+TB_CHR_0004,TB_MGL_001,Tamil-Brahmi,na,ந,0.12,0.26,0.22,0.32,intact,na,Epigraphist_ASI
+TB_CHR_0005,TB_MGL_001,Tamil-Brahmi,nta,ந்த,0.13,0.33,0.23,0.40,light_weathering,nta|da,Epigraphist_ASI
+TB_CHR_0006,TB_MGL_001,Tamil-Brahmi,saa,ஸா,0.12,0.41,0.24,0.49,severely_eroded,saa|si|ci,Epigraphist_ASI
+TB_CHR_0007,TB_MGL_001,Tamil-Brahmi,ri,ரி,0.11,0.50,0.22,0.56,light_weathering,ri,Epigraphist_ASI
+TB_CHR_0008,TB_MGL_001,Tamil-Brahmi,y,ய்,0.12,0.57,0.22,0.63,intact,y,Epigraphist_ASI
+TB_CHR_0009,TB_PGL_001,Tamil-Brahmi,thaa,தா,0.08,0.04,0.18,0.11,intact,thaa,Epigraphist_ASI
+TB_CHR_0010,TB_PGL_001,Tamil-Brahmi,a,அ,0.09,0.12,0.19,0.18,intact,a,Epigraphist_ASI
+TB_CHR_0011,TB_PGL_001,Tamil-Brahmi,ma,ம,0.08,0.19,0.18,0.26,light_weathering,ma,Epigraphist_ASI
+TB_CHR_0012,TB_PGL_001,Tamil-Brahmi,nan,ணன்,0.09,0.27,0.20,0.34,flaked,nan|nam,Epigraphist_ASI
+VT_CHR_0001,VT_PLK_001,Vatteluttu,ko,கோ,0.15,0.06,0.26,0.14,intact,ko,Epigraphist_StateTN
+VT_CHR_0002,VT_PLK_001,Vatteluttu,ce,சே,0.16,0.15,0.27,0.23,intact,ce,Epigraphist_StateTN
+VT_CHR_0003,VT_PLK_001,Vatteluttu,n,ந்,0.14,0.24,0.25,0.31,light_weathering,n,Epigraphist_StateTN
+VT_CHR_0004,VT_PLK_001,Vatteluttu,than,தன்,0.15,0.32,0.26,0.40,intact,than,Epigraphist_StateTN
+MT_CHR_0001,MT_TNJ_001,Medieval Tamil,naam,நாம்,0.20,0.05,0.32,0.15,intact,naam,Epigraphist_ASI
+MT_CHR_0002,MT_TNJ_001,Medieval Tamil,ku,கு,0.21,0.16,0.33,0.24,intact,ku,Epigraphist_ASI
+MT_CHR_0003,MT_TNJ_001,Medieval Tamil,du,டு,0.20,0.25,0.31,0.33,intact,du,Epigraphist_ASI
+MT_CHR_0004,MT_TNJ_001,Medieval Tamil,ttha,த்த,0.22,0.34,0.34,0.43,weathered_formula,ttha|tha,Epigraphist_ASI
+

@@ -1,0 +1,426 @@
+{
+  "timestamp": "2026-11-09 21:09:40",
+  "total_evaluation_samples": 8,
+  "script_classifier_accuracy": 1.0,
+  "mean_cer_baseline": 0.07830217130679303,
+  "mean_cer_inpainted": 0.09521074689700305,
+  "cer_relative_reduction_pct": -21.594006025658118,
+  "mean_wer_baseline": 0.29306457431457433,
+  "mean_wer_inpainted": 0.18393759018759018,
+  "wer_relative_reduction_pct": 37.23649792275736,
+  "mean_inpainting_f1": 0.8125,
+  "mean_sandhi_segmentation_f1": 0.8476463886990202,
+  "mean_contrast_improvement_ratio": 3.5238285401554665,
+  "mean_structural_similarity": 0.5088014171472162,
+  "mean_psnr_db": 15.03771692489432,
+  "script_evaluation": {
+    "accuracy": 1.0,
+    "total_samples": 8,
+    "classes": {
+      "grantha": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 1
+      },
+      "medieval_chola": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 3
+      },
+      "tamil_brahmi": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 2
+      },
+      "vatteluttu": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 2
+      }
+    }
+  },
+  "per_script_breakdown": {
+    "tamil_brahmi": {
+      "sample_count": 2,
+      "mean_cer_inpainted": 0.15902243053230666,
+      "mean_wer_inpainted": 0.2857142857142857,
+      "mean_inpaint_f1": 1.0
+    },
+    "vatteluttu": {
+      "sample_count": 2,
+      "mean_cer_inpainted": 0.06075757575757576,
+      "mean_wer_inpainted": 0.12698412698412698,
+      "mean_inpaint_f1": 1.0
+    },
+    "medieval_chola": {
+      "sample_count": 3,
+      "mean_cer_inpainted": 0.08654198753208653,
+      "mean_wer_inpainted": 0.13203463203463203,
+      "mean_inpaint_f1": 0.8333333333333334
+    },
+    "grantha": {
+      "sample_count": 1,
+      "mean_cer_inpainted": 0.0625,
+      "mean_wer_inpainted": 0.25,
+      "mean_inpaint_f1": 0.0
+    }
+  },
+  "ablation_details": {
+    "cv_enhancement_ablation": [
+      {
+        "sample_id": "mangulam_01",
+        "script": "tamil_brahmi",
+        "raw_contrast_std": 17.27462701365597,
+        "clahe_contrast_std": 63.276616489605,
+        "contrast_improvement_ratio": 3.66298018704447,
+        "structural_similarity": 0.4886706239102047,
+        "psnr_db": 14.64549291136427,
+        "latency_seconds": 0.02897300000768155
+      },
+      {
+        "sample_id": "pugalur_01",
+        "script": "tamil_brahmi",
+        "raw_contrast_std": 17.60894773301271,
+        "clahe_contrast_std": 63.72051195542709,
+        "contrast_improvement_ratio": 3.618643937250484,
+        "structural_similarity": 0.4923702345423819,
+        "psnr_db": 14.60970935038523,
+        "latency_seconds": 0.02796700003091246
+      },
+      {
+        "sample_id": "pulankurichi_01",
+        "script": "vatteluttu",
+        "raw_contrast_std": 17.590165123449864,
+        "clahe_contrast_std": 63.71501133945289,
+        "contrast_improvement_ratio": 3.6221951807895714,
+        "structural_similarity": 0.49216105598250304,
+        "psnr_db": 14.609081272129254,
+        "latency_seconds": 0.028892399976029992
+      },
+      {
+        "sample_id": "nadukal_01",
+        "script": "vatteluttu",
+        "raw_contrast_std": 14.4228850591036,
+        "clahe_contrast_std": 55.53506779674117,
+        "contrast_improvement_ratio": 3.850482588550334,
+        "structural_similarity": 0.47657991156946644,
+        "psnr_db": 15.686687604358552,
+        "latency_seconds": 0.02876949997153133
+      },
+      {
+        "sample_id": "chola_arulmoli_01",
+        "script": "medieval_chola",
+        "raw_contrast_std": 46.133461865279514,
+        "clahe_contrast_std": 103.67469685111112,
+        "contrast_improvement_ratio": 2.247277630147624,
+        "structural_similarity": 0.6580553645256524,
+        "psnr_db": 11.454612156425092,
+        "latency_seconds": 0.08183819998521358
+      },
+      {
+        "sample_id": "thanjavur_01",
+        "script": "medieval_chola",
+        "raw_contrast_std": 13.776155923690112,
+        "clahe_contrast_std": 51.386543725055866,
+        "contrast_improvement_ratio": 3.7301075865938187,
+        "structural_similarity": 0.4875305924508476,
+        "psnr_db": 16.406545256411505,
+        "latency_seconds": 0.03785080002853647
+      },
+      {
+        "sample_id": "uttiramerur_01",
+        "script": "medieval_chola",
+        "raw_contrast_std": 13.71797789626567,
+        "clahe_contrast_std": 51.160795330112244,
+        "contrast_improvement_ratio": 3.7294706054337143,
+        "structural_similarity": 0.4875217770983365,
+        "psnr_db": 16.44480342404033,
+        "latency_seconds": 0.0256894999765791
+      },
+      {
+        "sample_id": "pallava_grantha_01",
+        "script": "grantha",
+        "raw_contrast_std": 13.71797789626567,
+        "clahe_contrast_std": 51.160795330112244,
+        "contrast_improvement_ratio": 3.7294706054337143,
+        "structural_similarity": 0.4875217770983365,
+        "psnr_db": 16.44480342404033,
+        "latency_seconds": 0.027106199995614588
+      }
+    ],
+    "binarization_ablation": [
+      {
+        "sample_id": "mangulam_01",
+        "sauvola_foreground_ratio": 0.058189448441247,
+        "otsu_foreground_ratio": 0.3904676258992806,
+        "niblack_foreground_ratio": 0.3958243405275779,
+        "dice_sauvola_vs_otsu": 0.7858125550694841,
+        "dice_sauvola_vs_niblack": 0.7816054957817975,
+        "latency_sauvola": 0.024547600012738258,
+        "latency_otsu": 0.008376399986445904,
+        "latency_niblack": 0.027768999978434294
+      },
+      {
+        "sample_id": "pugalur_01",
+        "sauvola_foreground_ratio": 0.061148081534772185,
+        "otsu_foreground_ratio": 0.39668465227817745,
+        "niblack_foreground_ratio": 0.3951199040767386,
+        "dice_sauvola_vs_otsu": 0.7824253061906788,
+        "dice_sauvola_vs_niblack": 0.7836594568039318,
+        "latency_sauvola": 0.021833200007677078,
+        "latency_otsu": 0.009546999994199723,
+        "latency_niblack": 0.018630200007464737
+      },
+      {
+        "sample_id": "pulankurichi_01",
+        "sauvola_foreground_ratio": 0.06128597122302158,
+        "otsu_foreground_ratio": 0.36486510791366905,
+        "niblack_foreground_ratio": 0.396121103117506,
+        "dice_sauvola_vs_otsu": 0.8071103695746578,
+        "dice_sauvola_vs_niblack": 0.7829400574028048,
+        "latency_sauvola": 0.028298099990934134,
+        "latency_otsu": 0.00897560000885278,
+        "latency_niblack": 0.020641300012357533
+      },
+      {
+        "sample_id": "nadukal_01",
+        "sauvola_foreground_ratio": 0.06450239808153477,
+        "otsu_foreground_ratio": 0.45941846522781776,
+        "niblack_foreground_ratio": 0.40562649880095925,
+        "dice_sauvola_vs_otsu": 0.7324560334673652,
+        "dice_sauvola_vs_niblack": 0.7770242865400253,
+        "latency_sauvola": 0.02416810003342107,
+        "latency_otsu": 0.009437499975319952,
+        "latency_niblack": 0.02048449998255819
+      },
+      {
+        "sample_id": "chola_arulmoli_01",
+        "sauvola_foreground_ratio": 0.3668400447427293,
+        "otsu_foreground_ratio": 0.49232941834451904,
+        "niblack_foreground_ratio": 0.4194491051454139,
+        "dice_sauvola_vs_otsu": 0.8607538465686672,
+        "dice_sauvola_vs_niblack": 0.9563410234019856,
+        "latency_sauvola": 0.022842199949081987,
+        "latency_otsu": 0.00867030001245439,
+        "latency_niblack": 0.02241370000410825
+      },
+      {
+        "sample_id": "thanjavur_01",
+        "sauvola_foreground_ratio": 0.10469424460431655,
+        "otsu_foreground_ratio": 0.49830935251798564,
+        "niblack_foreground_ratio": 0.4091396882494005,
+        "dice_sauvola_vs_otsu": 0.7182418601058282,
+        "dice_sauvola_vs_niblack": 0.7951470899684339,
+        "latency_sauvola": 0.024778800026979297,
+        "latency_otsu": 0.00832649995572865,
+        "latency_niblack": 0.022071900020819157
+      },
+      {
+        "sample_id": "uttiramerur_01",
+        "sauvola_foreground_ratio": 0.10370503597122302,
+        "otsu_foreground_ratio": 0.4970593525179856,
+        "niblack_foreground_ratio": 0.4097781774580336,
+        "dice_sauvola_vs_otsu": 0.7188791413605836,
+        "dice_sauvola_vs_niblack": 0.7941004472657904,
+        "latency_sauvola": 0.04970159998629242,
+        "latency_otsu": 0.021547900047153234,
+        "latency_niblack": 0.043635300011374056
+      },
+      {
+        "sample_id": "pallava_grantha_01",
+        "sauvola_foreground_ratio": 0.10370503597122302,
+        "otsu_foreground_ratio": 0.4970593525179856,
+        "niblack_foreground_ratio": 0.4097781774580336,
+        "dice_sauvola_vs_otsu": 0.7188791413605836,
+        "dice_sauvola_vs_niblack": 0.7941004472657904,
+        "latency_sauvola": 0.07022890000371262,
+        "latency_otsu": 0.02330699999583885,
+        "latency_niblack": 0.04371300002094358
+      }
+    ],
+    "nlp_inpainting_ablation": [
+      {
+        "sample_id": "mangulam_01",
+        "script": "tamil_brahmi",
+        "cer_baseline": 0.1206896551724138,
+        "cer_inpainted": 0.1724137931034483,
+        "cer_improvement": 0.0,
+        "wer_baseline": 0.42857142857142855,
+        "wer_inpainted": 0.42857142857142855,
+        "wer_improvement": 0.0,
+        "inpainting_precision": 1.0,
+        "inpainting_recall": 1.0,
+        "inpainting_f1": 1.0,
+        "latency_seconds": 0.0003401999711059034
+      },
+      {
+        "sample_id": "pugalur_01",
+        "script": "tamil_brahmi",
+        "cer_baseline": 0.20388349514563106,
+        "cer_inpainted": 0.14563106796116504,
+        "cer_improvement": 0.05825242718446602,
+        "wer_baseline": 0.42857142857142855,
+        "wer_inpainted": 0.14285714285714285,
+        "wer_improvement": 0.2857142857142857,
+        "inpainting_precision": 1.0,
+        "inpainting_recall": 1.0,
+        "inpainting_f1": 1.0,
+        "latency_seconds": 8.839997462928295e-05
+      },
+      {
+        "sample_id": "pulankurichi_01",
+        "script": "vatteluttu",
+        "cer_baseline": 0.045454545454545456,
+        "cer_inpainted": 0.06818181818181818,
+        "cer_improvement": 0.0,
+        "wer_baseline": 0.2857142857142857,
+        "wer_inpainted": 0.14285714285714285,
+        "wer_improvement": 0.14285714285714285,
+        "inpainting_precision": 1.0,
+        "inpainting_recall": 1.0,
+        "inpainting_f1": 1.0,
+        "latency_seconds": 8.700002217665315e-05
+      },
+      {
+        "sample_id": "nadukal_01",
+        "script": "vatteluttu",
+        "cer_baseline": 0.05333333333333334,
+        "cer_inpainted": 0.05333333333333334,
+        "cer_improvement": 0.0,
+        "wer_baseline": 0.2222222222222222,
+        "wer_inpainted": 0.1111111111111111,
+        "wer_improvement": 0.1111111111111111,
+        "inpainting_precision": 1.0,
+        "inpainting_recall": 1.0,
+        "inpainting_f1": 1.0,
+        "latency_seconds": 8.890003664419055e-05
+      },
+      {
+        "sample_id": "chola_arulmoli_01",
+        "script": "medieval_chola",
+        "cer_baseline": 0.05333333333333334,
+        "cer_inpainted": 0.0,
+        "cer_improvement": 0.05333333333333334,
+        "wer_baseline": 0.3333333333333333,
+        "wer_inpainted": 0.0,
+        "wer_improvement": 0.3333333333333333,
+        "inpainting_precision": 1.0,
+        "inpainting_recall": 1.0,
+        "inpainting_f1": 1.0,
+        "latency_seconds": 6.349995965138078e-05
+      },
+      {
+        "sample_id": "thanjavur_01",
+        "script": "medieval_chola",
+        "cer_baseline": 0.047619047619047616,
+        "cer_inpainted": 0.1111111111111111,
+        "cer_improvement": 0.0,
+        "wer_baseline": 0.21428571428571427,
+        "wer_inpainted": 0.21428571428571427,
+        "wer_improvement": 0.0,
+        "inpainting_precision": 1.0,
+        "inpainting_recall": 1.0,
+        "inpainting_f1": 1.0,
+        "latency_seconds": 0.0005358000053092837
+      },
+      {
+        "sample_id": "uttiramerur_01",
+        "script": "medieval_chola",
+        "cer_baseline": 0.039603960396039604,
+        "cer_inpainted": 0.1485148514851485,
+        "cer_improvement": 0.0,
+        "wer_baseline": 0.18181818181818182,
+        "wer_inpainted": 0.18181818181818182,
+        "wer_improvement": 0.0,
+        "inpainting_precision": 0.5,
+        "inpainting_recall": 0.5,
+        "inpainting_f1": 0.5,
+        "latency_seconds": 8.169998181983829e-05
+      },
+      {
+        "sample_id": "pallava_grantha_01",
+        "script": "grantha",
+        "cer_baseline": 0.0625,
+        "cer_inpainted": 0.0625,
+        "cer_improvement": 0.0,
+        "wer_baseline": 0.25,
+        "wer_inpainted": 0.25,
+        "wer_improvement": 0.0,
+        "inpainting_precision": 1.0,
+        "inpainting_recall": 0.0,
+        "inpainting_f1": 0.0,
+        "latency_seconds": 8.069997420534492e-05
+      }
+    ],
+    "sandhi_ablation": [
+      {
+        "sample_id": "mangulam_01",
+        "script": "tamil_brahmi",
+        "f1_without_sandhi": 1.0,
+        "f1_with_sandhi": 1.0,
+        "f1_improvement": 0.0,
+        "latency_seconds": 0.0004566999850794673
+      },
+      {
+        "sample_id": "pugalur_01",
+        "script": "tamil_brahmi",
+        "f1_without_sandhi": 0.888888888888889,
+        "f1_with_sandhi": 0.7333333333333334,
+        "f1_improvement": 0.0,
+        "latency_seconds": 7.54999928176403e-05
+      },
+      {
+        "sample_id": "pulankurichi_01",
+        "script": "vatteluttu",
+        "f1_without_sandhi": 0.6250000000000001,
+        "f1_with_sandhi": 0.7368421052631577,
+        "f1_improvement": 0.11184210526315763,
+        "latency_seconds": 4.859996261075139e-05
+      },
+      {
+        "sample_id": "nadukal_01",
+        "script": "vatteluttu",
+        "f1_without_sandhi": 0.7000000000000001,
+        "f1_with_sandhi": 0.9090909090909091,
+        "f1_improvement": 0.209090909090909,
+        "latency_seconds": 5.1099981646984816e-05
+      },
+      {
+        "sample_id": "chola_arulmoli_01",
+        "script": "medieval_chola",
+        "f1_without_sandhi": 1.0,
+        "f1_with_sandhi": 1.0,
+        "f1_improvement": 0.0,
+        "latency_seconds": 4.1899969801306725e-05
+      },
+      {
+        "sample_id": "thanjavur_01",
+        "script": "medieval_chola",
+        "f1_without_sandhi": 0.761904761904762,
+        "f1_with_sandhi": 0.761904761904762,
+        "f1_improvement": 0.0,
+        "latency_seconds": 6.930000381544232e-05
+      },
+      {
+        "sample_id": "uttiramerur_01",
+        "script": "medieval_chola",
+        "f1_without_sandhi": 0.6956521739130435,
+        "f1_with_sandhi": 0.64,
+        "f1_improvement": 0.0,
+        "latency_seconds": 6.51999725960195e-05
+      },
+      {
+        "sample_id": "pallava_grantha_01",
+        "script": "grantha",
+        "f1_without_sandhi": 1.0,
+        "f1_with_sandhi": 1.0,
+        "f1_improvement": 0.0,
+        "latency_seconds": 4.600000102072954e-05
+      }
+    ]
+  }
+}

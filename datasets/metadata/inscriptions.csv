@@ -1,0 +1,7 @@
+inscription_id,title_en,title_ta,script,period_en,dynasty,location,license,source_dataset,is_authentic,ground_truth_transcription
+TB_MGL_001,Mangulam Inscription 1,மாங்குளம் கல்வெட்டு 1,Tamil-Brahmi,c. 3rd-2nd Century BCE,Early Pandya,Mangulam Ovamalai Madurai,CC-BY-4.0,Mendeley Data 2spz2js9jp.1,True,கணிய் நந்தாஸிரிய் இகுவன் வெள்ளறை நிகமத்தோர் கொடிபித பாளிய்
+TB_PGL_001,Pugalur Chera Inscription,புகழூர் சேரர் கல்வெட்டு,Tamil-Brahmi,c. 1st-2nd Century CE,Chera Dynasty,Pugalur Arunattarmalai Karur,ASI Epigraphia Indica,ASI Epigraphia Indica Vol VIII,True,தா அமணன் யாற்றூர் செங்காயபன் உறை
+VT_PLK_001,Pulankurichi Pillar Epigraph,பூலாங்குறிச்சி கல்வெட்டு,Vatteluttu,c. 5th Century CE,Kalabhra / Transitional,Pulankurichi Sivaganga,ASI Southern Circle,State Dept of Archaeology TN,True,கோச்சேந்தன் கூற்றற்கு யாண்டு இருபத்தேழாவது
+MT_TNJ_001,Thanjavur Brihadisvara Foundation,தஞ்சைப் பெரிய கோயில் கல்வெட்டு,Medieval Tamil,1010 CE,Imperial Chola,Brihadisvara Temple Thanjavur,ASI Epigraphia Indica,ASI Epigraphia Indica Vol XXI,True,நாம் குடுத்தனவும் நம் அக்கன் குடுத்தனவும் நம் பெண்டுகள் குடுத்தனவும்
+MT_UTM_001,Uttiramerur Kudavolai Constitution,உத்திரமேரூர் குடவோலை சாசனம்,Medieval Tamil,921 CE,Imperial Chola (Parantaka I),Vaikunta Perumal Temple Kanchipuram,ASI Annual Report on Epigraphy,ASI Epigraphia Indica Vol XXII,True,உத்திரமேருர் சதுர்வேதிமங்கலத்து சபையோம் இவ்வாண்டு முதல் குடவோலை முறை
+
