@@ -139,6 +139,11 @@ class FusedTranscriptionResult:
     abstention_slots_count: int
     fusion_metadata: Dict[str, Any] = field(default_factory=dict)
 
+    @property
+    def cer_reduction_pct(self) -> Optional[float]:
+        """Estimated CER error reduction percentage over strongest baseline."""
+        return self.fusion_metadata.get("cer_reduction_pct")
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "fused_text": self.fused_text,

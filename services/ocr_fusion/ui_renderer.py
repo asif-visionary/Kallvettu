@@ -558,12 +558,13 @@ def render_kiefe_dashboard(
         st.markdown("##### 🔬 Independent Fusion Strategy Comparison:")
         strat_rows = []
         for s_key, s_obj in bundle.all_fusion_strategies.items():
+            cer_val = getattr(s_obj, "cer_reduction_pct", None)
             strat_rows.append({
                 "Strategy": s_key.replace("strategy_", "").replace("_", " ").title(),
                 "Candidate Text": s_obj.fused_text[:80] + ("..." if len(s_obj.fused_text) > 80 else ""),
                 "Length (Chars)": len(s_obj.fused_text),
                 "Baseline Provider": s_obj.strongest_baseline_provider,
-                "Relative CER Reduction": f"{s_obj.cer_reduction_pct:+.1f}%" if s_obj.cer_reduction_pct is not None else "Baseline",
+                "Relative CER Reduction": f"{cer_val:+.1f}%" if cer_val is not None else "Baseline",
             })
         st.dataframe(pd.DataFrame(strat_rows), width="stretch", hide_index=True)
 

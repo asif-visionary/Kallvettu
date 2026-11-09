@@ -532,6 +532,9 @@ def test_bundle_attributes_for_ui_rendering():
     assert isinstance(fused.conservative_text, str)
     assert isinstance(fused.strategy_used, str)
     assert isinstance(fused.strongest_baseline_provider, str)
+    assert hasattr(fused, "cer_reduction_pct")
+    for s_key, s_obj in bundle.all_fusion_strategies.items():
+        assert hasattr(s_obj, "cer_reduction_pct")
 
     # Audit record properties
     audit = bundle.audit_record
