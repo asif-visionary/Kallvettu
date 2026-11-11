@@ -81,7 +81,7 @@ Kallvettu provides a state-of-the-art multi-provider ecosystem combining soverei
 
 ```
                                   ┌────────────────────────────────┐
-                                  │    Active Stone Inscription   │
+                                  │    Active Stone Inscription    │
                                   └───────────────┬────────────────┘
                                                   │
                                    Multi-Spectral Digital Restoration
