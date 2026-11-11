@@ -1,0 +1,6 @@
+history_id,character_id,timestamp,annotator,previous_label,new_label,decision_reason,status
+HIST_0001,TB_CHR_0006,2026-03-15T10:30:00Z,Epigraphist_A,si,saa,Cross-checked with Mahadevan Early Tamil Epigraphy Table 4,VERIFIED
+HIST_0002,TB_CHR_0005,2026-03-15T10:35:00Z,Epigraphist_A,da,nta,Dental stop nasal conjunct verified from squeeze rubbing,VERIFIED
+HIST_0003,TB_CHR_0012,2026-04-02T14:15:00Z,Epigraphist_B,nam,nan,Orthographic convention for terminal dental nasal in Pugalur,VERIFIED
+HIST_0004,MT_CHR_0004,2026-05-10T16:00:00Z,Epigraphist_C,tha,ttha,Chola administrative formula repetitive reading 'குடுத்தனவும்',VERIFIED
+

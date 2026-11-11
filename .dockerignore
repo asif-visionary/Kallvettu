@@ -1,0 +1,32 @@
+# Git
+.git
+.gitignore
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environments & secrets
+.env
+.env.local
+.venv
+env/
+venv/
+ENV/
+
+# System and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+
+# Scratch and transient directories
+scratch/
+.system_generated/
+

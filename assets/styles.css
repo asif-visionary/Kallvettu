@@ -1,203 +1,341 @@
-/* Ancient Inscription & Restoration Translation - Theme Stylesheet */
+/* ==============================================================================
+   KALLVETTU — ARCHAEOLOGICAL RESEARCH WORKBENCH STYLESHEET
+   Palette: Dark Graphite (#111820), Secondary (#171D24), Surface (#202832),
+            Elevated (#252C34), Muted Bronze Accent (#C5A15A), Text (#F1F2F3)
+   Typography: Inter (Latin), Noto Sans Tamil, Noto Serif Tamil
+   ============================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Mukta+Malar:wght@400;600;700&family=Outfit:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&family=Noto+Serif+Tamil:wght@600;700&family=Cinzel:wght@600;700;800&display=swap');
 
 :root {
-  --bg-primary: #0d1117;
-  --bg-secondary: #161b22;
-  --card-bg: #1c2128;
-  --card-border: #30363d;
-  --gold-primary: #d4af37;
-  --gold-glow: rgba(212, 175, 55, 0.25);
-  --gold-light: #f3e5ab;
-  --text-main: #f0f6fc;
-  --text-muted: #8b949e;
-  --stone-accent: #2d333b;
-  --terracotta: #c85a17;
+  --bg-primary: #111820;
+  --bg-secondary: #171D24;
+  --bg-card: #202832;
+  --bg-elevated: #252C34;
+  --accent-primary: #C5A15A;
+  --accent-secondary: #A88C55;
+  --text-main: #F1F2F3;
+  --text-secondary: #A8B0BA;
+  --text-muted: #7E8691;
+  --border-subtle: #2D3642;
+  --border-focus: #C5A15A;
+  --status-success: #4CAF85;
+  --status-warning: #D9A441;
+  --status-error: #D96B6B;
 }
 
-/* Main Container Customization */
+/* Global Container Configuration */
 .main .block-container {
-  padding-top: 2rem;
-  padding-bottom: 4rem;
-  max-width: 1250px;
+  padding-top: 1.5rem;
+  padding-bottom: 3.5rem;
+  max-width: 1350px;
 }
 
-/* Header Banner */
-.epigraph-header {
-  background: linear-gradient(135deg, #1a1612 0%, #2a221b 50%, #15181e 100%);
-  border: 1px solid #4a3b2c;
-  border-radius: 16px;
-  padding: 2.2rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 0 40px rgba(212, 175, 55, 0.08);
-  position: relative;
-  overflow: hidden;
+/* Base Typography */
+html, body, [class*="css"] {
+  font-family: 'Inter', 'Noto Sans Tamil', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-main);
 }
 
-.epigraph-header::before {
-  content: "❖ கல்வெட்டு ❖";
-  position: absolute;
-  top: 12px;
-  right: 24px;
-  color: rgba(212, 175, 55, 0.2);
-  font-family: 'Cinzel', serif;
-  font-size: 1.1rem;
-  letter-spacing: 2px;
+h1, h2, h3, h4, .heritage-heading {
+  font-family: 'Inter', 'Noto Serif Tamil', serif;
+  letter-spacing: -0.01em;
 }
 
-.header-title-en {
-  font-family: 'Cinzel', serif;
-  font-size: 2.2rem;
-  font-weight: 800;
-  color: #f7e7ce;
-  letter-spacing: 1.5px;
-  margin: 0;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+/* Workbench Master Header */
+.workbench-header {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-left: 4px solid var(--accent-primary);
+  border-radius: 8px;
+  padding: 1.4rem 1.8rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
 }
 
-.header-title-ta {
-  font-family: 'Mukta Malar', sans-serif;
-  font-size: 1.5rem;
+.brand-title {
+  font-family: 'Cinzel', 'Noto Serif Tamil', serif;
+  font-size: 1.6rem;
   font-weight: 700;
-  color: var(--gold-primary);
-  margin-top: 0.3rem;
+  color: var(--text-main);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-title span.tamil {
+  font-family: 'Noto Serif Tamil', serif;
+  font-size: 1.25rem;
+  color: var(--accent-primary);
+  font-weight: 600;
+}
+
+.brand-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  margin-top: 4px;
+}
+
+.header-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+}
+
+.header-status-pill.ready {
+  border-color: rgba(76, 175, 133, 0.4);
+  color: #7ee787;
+}
+
+.header-status-pill.offline {
+  border-color: rgba(197, 161, 90, 0.35);
+  color: var(--accent-primary);
+}
+
+/* Metric / Stat Cards */
+.metric-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 1.1rem 1.3rem;
   margin-bottom: 0.8rem;
 }
 
-.header-subtitle {
-  color: #c9d1d9;
-  font-size: 1rem;
-  line-height: 1.6;
-  max-width: 850px;
+.metric-card-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
 }
 
-/* Badges */
-.badge-container {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 1rem;
-}
-
-.script-badge {
-  background: rgba(212, 175, 55, 0.12);
-  border: 1px solid rgba(212, 175, 55, 0.4);
-  color: #f3e5ab;
-  padding: 4px 14px;
-  border-radius: 20px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
-
-/* Section Cards */
-.result-card {
-  background: #181d24;
-  border: 1px solid #30363d;
-  border-radius: 12px;
-  padding: 1.4rem;
-  margin-bottom: 1.2rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-  transition: transform 0.2s ease, border-color 0.2s ease;
-}
-
-.result-card:hover {
-  border-color: #586069;
-}
-
-.card-title {
-  font-size: 1.15rem;
+.metric-card-value {
+  font-size: 1.6rem;
   font-weight: 700;
-  color: var(--gold-primary);
+  color: var(--accent-primary);
+  line-height: 1.2;
+}
+
+.metric-card-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Epigraphical Research Cards */
+.research-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 1.3rem;
+  margin-bottom: 1.2rem;
+}
+
+.research-card-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--accent-primary);
   margin-bottom: 0.8rem;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
+/* Inscription Transcription Displays */
 .transcription-box {
-  background: #0f1318;
-  border-left: 4px solid var(--gold-primary);
+  background: var(--bg-primary);
+  border-left: 3px solid var(--accent-primary);
   padding: 1rem 1.2rem;
-  border-radius: 0 8px 8px 0;
+  border-radius: 0 6px 6px 0;
   font-size: 1.15rem;
-  line-height: 1.8;
-  color: #e6edf3;
-  margin: 0.8rem 0;
-  font-family: 'Mukta Malar', sans-serif;
+  line-height: 1.9;
+  color: var(--text-main);
+  font-family: 'Noto Sans Tamil', sans-serif;
+  margin: 0.6rem 0;
 }
 
 .weathered-tag {
-  color: #ff7b72;
-  font-weight: 700;
-  background: rgba(255, 123, 114, 0.12);
+  color: var(--status-error);
+  font-weight: 600;
+  background: rgba(217, 107, 107, 0.12);
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: 3px;
 }
 
 .restored-tag {
-  color: #7ee787;
-  font-weight: 700;
-  background: rgba(126, 231, 135, 0.12);
+  color: var(--status-success);
+  font-weight: 600;
+  background: rgba(76, 175, 133, 0.12);
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: 3px;
 }
 
-.translation-box-ta {
-  background: rgba(212, 175, 55, 0.06);
-  border: 1px solid rgba(212, 175, 55, 0.25);
+/* Translation Presentation Panels */
+.translation-panel-ta {
+  background: rgba(197, 161, 90, 0.05);
+  border: 1px solid rgba(197, 161, 90, 0.25);
+  border-radius: 6px;
   padding: 1.2rem;
-  border-radius: 10px;
-  font-size: 1.1rem;
-  line-height: 1.8;
-  color: #f0f6fc;
+  font-size: 1.08rem;
+  line-height: 1.85;
+  color: var(--text-main);
+  font-family: 'Noto Sans Tamil', sans-serif;
 }
 
-.translation-box-en {
-  background: rgba(56, 189, 248, 0.06);
-  border: 1px solid rgba(56, 189, 248, 0.25);
+.translation-panel-en {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
   padding: 1.2rem;
-  border-radius: 10px;
-  font-size: 1.05rem;
+  font-size: 1.02rem;
   line-height: 1.7;
-  color: #f0f6fc;
+  color: var(--text-main);
 }
 
-.meaning-box {
-  background: #14181f;
-  border: 1px solid #282e38;
-  border-radius: 10px;
+.commentary-panel {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
   padding: 1.2rem;
   line-height: 1.75;
-  color: #c9d1d9;
+  color: var(--text-secondary);
 }
 
 /* Metadata Grid */
 .meta-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 12px;
   margin-bottom: 1.2rem;
 }
 
 .meta-item {
-  background: #12161c;
-  border: 1px solid #282f3a;
-  border-radius: 8px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
   padding: 10px 14px;
 }
 
 .meta-label {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   text-transform: uppercase;
-  color: #8b949e;
-  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  letter-spacing: 0.6px;
   margin-bottom: 4px;
 }
 
 .meta-value {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #e6edf3;
+  color: var(--text-main);
+}
+
+/* Status Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-gold {
+  background: rgba(197, 161, 90, 0.12);
+  border: 1px solid rgba(197, 161, 90, 0.35);
+  color: var(--accent-primary);
+}
+
+.badge-info {
+  background: rgba(126, 134, 145, 0.12);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+.badge-success {
+  background: rgba(76, 175, 133, 0.12);
+  border: 1px solid rgba(76, 175, 133, 0.35);
+  color: var(--status-success);
+}
+
+.badge-warning {
+  background: rgba(217, 164, 65, 0.12);
+  border: 1px solid rgba(217, 164, 65, 0.35);
+  color: var(--status-warning);
+}
+
+/* Empty State Component */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  background: var(--bg-card);
+  border: 1px dashed var(--border-subtle);
+  border-radius: 8px;
+  margin: 1.5rem 0;
+}
+
+.empty-state-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.8rem;
+  opacity: 0.7;
+}
+
+.empty-state-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 0.4rem;
+}
+
+.empty-state-desc {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  max-width: 480px;
+  margin: 0 auto 1.2rem auto;
+  line-height: 1.6;
+}
+
+/* Multi-Provider Entity & Transliteration styling */
+.entity-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  margin: 3px;
+  border-radius: 14px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+}
+.entity-king { border-color: #E5C07B; color: #E5C07B; }
+.entity-dynasty { border-color: #61AFEF; color: #61AFEF; }
+.entity-shrine { border-color: #98C379; color: #98C379; }
+.entity-grant { border-color: #D19A66; color: #D19A66; }
+.entity-hero { border-color: #E06C75; color: #E06C75; }
+.entity-admin { border-color: #C678DD; color: #C678DD; }
+.entity-unit { border-color: #56B6C2; color: #56B6C2; }
+
+.transliteration-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--accent-secondary);
+  border-radius: 6px;
+  padding: 1rem 1.2rem;
+  font-family: 'Inter', monospace;
+  font-size: 0.95rem;
+  font-style: italic;
+  color: #E5C07B;
+  line-height: 1.6;
+  white-space: pre-wrap;
 }

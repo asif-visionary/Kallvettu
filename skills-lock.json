@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "skills": {
+    "chat": {
+      "source": "sarvamai/skills",
+      "sourceType": "github",
+      "skillPath": "chat/SKILL.md",
+      "computedHash": "9c4fe3cfde902b13f2c971cfdd6a90506e7e9475147e57444be88765ab73ecdd"
+    },
+    "doc-ai": {
+      "source": "sarvamai/skills",
+      "sourceType": "github",
+      "skillPath": "doc-ai/SKILL.md",
+      "computedHash": "3413547afd36d8f1617b02a661131126bf228b540447323be0c87fbd030b75a1"
+    },
+    "document-translation": {
+      "source": "sarvamai/skills",
+      "sourceType": "github",
+      "skillPath": "translate/document/SKILL.md",
+      "computedHash": "fb050526bd5b79818668bda46ea10c255e10f5a2be4b7b7e680ab0f678e43812"
+    },
+    "text-translation": {
+      "source": "sarvamai/skills",
+      "sourceType": "github",
+      "skillPath": "translate/text/SKILL.md",
+      "computedHash": "eaf148d5227e477347e360b0f3b4b08b47b84434139a556ac31664953bc14713"
+    }
+  }
+}

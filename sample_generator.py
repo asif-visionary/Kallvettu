@@ -5,12 +5,42 @@ chiseled relief grooves, micro-cracks, and historical epigraphs.
 """
 
 import os
+from typing import Optional
 import numpy as np
 import scipy.ndimage as ndi
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps
 
 ASSETS_DIR = os.path.join(os.path.dirname(__file__), "assets", "samples")
-FONT_PATH = "C:/Windows/Fonts/Nirmala.ttc"
+
+
+def get_cross_platform_font_path() -> Optional[str]:
+    """
+    Discovers an available Tamil/Indic Unicode font across Windows, Linux, and macOS.
+    Returns the path if found, or None to fall back to the default system font.
+    """
+    candidate_paths = [
+        # Windows
+        "C:/Windows/Fonts/Nirmala.ttc",
+        "C:/Windows/Fonts/NirmalaB.ttc",
+        "C:/Windows/Fonts/Latha.ttf",
+        "C:/Windows/Fonts/Vijaya.ttf",
+        "C:/Windows/Fonts/Arial.ttf",
+        # Linux
+        "/usr/share/fonts/truetype/lohit-tamil/Lohit-Tamil.ttf",
+        "/usr/share/fonts/truetype/noto/NotoSansTamil-Regular.ttf",
+        "/usr/share/fonts/truetype/noto/NotoSansTamil-Bold.ttf",
+        "/usr/share/fonts/opentype/noto/NotoSansTamil-Regular.otf",
+        "/usr/share/fonts/truetype/freefont/FreeSerif.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        # macOS
+        "/System/Library/Fonts/Supplemental/InaiMathi.ttf",
+        "/Library/Fonts/Arial Unicode.ttf",
+        "/System/Library/Fonts/Helvetica.ttc",
+    ]
+    for path in candidate_paths:
+        if os.path.exists(path):
+            return path
+    return None
 
 
 def generate_stone_texture(width=900, height=520, stone_type="granite"):
@@ -63,10 +93,15 @@ def engrave_inscription_on_stone(stone_img, lines, font_size=32, stone_type="gra
     mask = Image.new("L", (w, h), 0)
     draw_mask = ImageDraw.Draw(mask)
 
-    try:
-        font = ImageFont.truetype(FONT_PATH, font_size)
-        small_font = ImageFont.truetype(FONT_PATH, 18)
-    except Exception:
+    font_path = get_cross_platform_font_path()
+    if font_path:
+        try:
+            font = ImageFont.truetype(font_path, font_size)
+            small_font = ImageFont.truetype(font_path, 18)
+        except Exception:
+            font = ImageFont.load_default()
+            small_font = ImageFont.load_default()
+    else:
         font = ImageFont.load_default()
         small_font = ImageFont.load_default()
 
