@@ -25,9 +25,13 @@ from restoration_engine import (
     generate_ocr_variants,
     digital_squeeze_rubbing,
     extract_chisel_grooves,
+    denoise_stone_texture,
     crop_region_of_interest,
     compute_enhancement_difference_map,
     compute_experimental_surface_anomalies,
+    get_safe_display_image,
+    save_restoration_outputs,
+    DEFAULT_RESTORATION_OUTPUT_DIR,
 )
 from nlp_translation_engine import (
     get_all_preset_inscriptions,
@@ -50,12 +54,6 @@ from multimodal_ai import (
     call_gemini_vision_api,
     SUPPORTED_GEMINI_MODELS,
     validate_gemini_epigraphy_response,
-)
-from evaluation_engine import (
-    run_full_evaluation,
-    generate_evaluation_markdown,
-    export_evaluation_report,
-    load_evaluation_dataset,
 )
 from ui_components import (
     render_workbench_header,
@@ -89,32 +87,16 @@ from services.ocr_fusion import (
     MasterEvidenceFusionBundle,
     ResearcherReviewManager,
 )
+from services.ocr_fusion.researcher_review import AdjudicationDecision
+from services.ocr_fusion.region_resolver import (
+    resolve_text_regions,
+    crop_region_layers,
+)
 from services.ocr_fusion.ui_renderer import (
     render_kiefe_dashboard,
     render_evidence_heatmap_overlay,
+    render_epigraphical_evidence_integrity_monitor,
 )
-
-# --- INDIA EPIGRAPHICAL GEOGRAPHIC ATLAS ---
-try:
-    from services.geo_atlas.models import GeoInscriptionRecord
-    from services.geo_atlas.ui_atlas import render_geographic_atlas_studio
-except ImportError:
-    import importlib
-    import sys
-    for mod_name in list(sys.modules.keys()):
-        if mod_name.startswith("services.geo_atlas") and sys.modules[mod_name]:
-            try:
-                importlib.reload(sys.modules[mod_name])
-            except Exception:
-                pass
-    from services.geo_atlas.models import GeoInscriptionRecord
-    from services.geo_atlas.ui_atlas import render_geographic_atlas_studio
-
-# --- HISTORICAL GLYPH DATASET STUDIO (PHASE 1) ---
-from services.research.glyph_annotation_ui import render_glyph_annotation_studio
-
-# --- ADVANCED RESEARCH EXTENSIONS (PHASES G - L) ---
-from services.epidoc.bundle import EpiDocArchiveBundler
 
 
 # --- PAGE CONFIGURATION ---
@@ -217,6 +199,21 @@ if "kiefe_show_heatmap" not in st.session_state:
 if "kiefe_reviewer_name" not in st.session_state:
     st.session_state.kiefe_reviewer_name = "Epigraphist / Digital Epigraphy Researcher"
 
+if "heatmap_opacity" not in st.session_state:
+    st.session_state.heatmap_opacity = 0.35
+
+if "heatmap_selected_slot" not in st.session_state:
+    st.session_state.heatmap_selected_slot = 0
+
+if "heatmap_show_labels" not in st.session_state:
+    st.session_state.heatmap_show_labels = True
+
+if "heatmap_layer_mode" not in st.session_state:
+    st.session_state.heatmap_layer_mode = "Master Photograph"
+
+if "heatmap_manual_coords" not in st.session_state:
+    st.session_state.heatmap_manual_coords = {}
+
 
 # --- HELPER FUNCTIONS ---
 def get_preset_image(image_key: str) -> Optional[Image.Image]:
@@ -225,6 +222,44 @@ def get_preset_image(image_key: str) -> Optional[Image.Image]:
     if os.path.exists(path):
         return Image.open(path)
     return None
+
+
+def render_safe_image(
+    image_candidate: Any,
+    caption: str = "",
+    fallback: Optional[Any] = None,
+    error_label: str = "Image output unavailable",
+    width: str = "stretch",
+    **kwargs
+) -> bool:
+    """
+    Safely renders an image in Streamlit, ensuring no broken-image icons appear.
+    Verifies file existence if a path string is provided, unwraps dictionaries,
+    and falls back cleanly.
+    """
+    safe_target = get_safe_display_image(image_candidate, fallback_image=fallback)
+    if safe_target is not None:
+        try:
+            st.image(safe_target, caption=caption, width=width, **kwargs)
+            return True
+        except Exception as e:
+            st.warning(f"⚠️ Unable to render image: {e}")
+            return False
+    else:
+        st.markdown(
+            f"""
+            <div style="background: rgba(239, 68, 68, 0.08); border: 1px dashed rgba(239, 68, 68, 0.35); 
+                        border-radius: 6px; padding: 14px; text-align: center; color: #f87171; font-size: 0.82rem; margin-bottom: 8px;">
+                ⚠️ <b>{error_label}</b><br>
+                <span style="color: #94a3b8; font-size: 0.74rem;">Output layer pending or could not be generated.</span>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        if caption:
+            st.caption(caption)
+        return False
+
 
 
 def load_preset_into_state(preset_id: str):
@@ -382,15 +417,38 @@ def run_pipeline_for_image(
                 analysis = None
 
     if analysis is None:
-        analysis = analyze_custom_epigraph_text(
-            recognized_text or "",
-            script_hint=script_hint,
-            provenance=provenance_str,
-            allow_preset_match=False,
-            source_identity=st.session_state.source_identity
-        )
-
-    st.session_state.analysis_output = analysis
+        try:
+            analysis = analyze_custom_epigraph_text(
+                recognized_text or "",
+                script_hint=script_hint,
+                provenance=provenance_str,
+                provenance_type="AI_GENERATED_SUGGESTION" if ("Gemini" in provenance_str or "OCR" in provenance_str) else "UNVERIFIED",
+                is_researcher_approved=False,
+                allow_preset_match=False,
+                source_identity=st.session_state.source_identity
+            )
+        except TypeError as _te:
+            import importlib
+            import nlp_translation_engine as _nte
+            importlib.reload(_nte)
+            try:
+                analysis = _nte.analyze_custom_epigraph_text(
+                    recognized_text or "",
+                    script_hint=script_hint,
+                    provenance=provenance_str,
+                    provenance_type="AI_GENERATED_SUGGESTION" if ("Gemini" in provenance_str or "OCR" in provenance_str) else "UNVERIFIED",
+                    is_researcher_approved=False,
+                    allow_preset_match=False,
+                    source_identity=st.session_state.source_identity
+                )
+            except TypeError:
+                analysis = _nte.analyze_custom_epigraph_text(
+                    recognized_text or "",
+                    script_hint=script_hint,
+                    provenance=provenance_str,
+                    is_researcher_approved=False,
+                    allow_preset_match=False,
+                )
 
     st.session_state.analysis_output = analysis
 
@@ -408,64 +466,126 @@ def run_pipeline_for_image(
 
 
 def generate_markdown_report(result: dict) -> str:
-    """Generates an academic epigraphical report for download."""
+    """Generates an academic epigraphical report for download adhering to scholarly anti-hallucination standards."""
+    dossier_status = result.get("dossier_status") or ("APPROVED" if result.get("is_researcher_approved") or result.get("is_curated_preset") else "UNVERIFIED")
+    prov_type = result.get("provenance_type") or ("RESEARCHER_TRANSCRIPTION" if "Researcher" in str(result.get("provenance", "")) else "AI_GENERATED_SUGGESTION")
+
+    script_family = result.get("script_family", "UNDETERMINED")
+    script_variant = result.get("script_variant", result.get("script_en", "UNDETERMINED"))
+    language = result.get("language", "Classical Tamil (பழந்தமிழ்)" if script_family != "UNDETERMINED" else "UNDETERMINED")
+    historical_period = result.get("historical_period", result.get("era_en", "UNDETERMINED"))
+    dynasty = result.get("dynasty", result.get("dynasty_en", "UNDETERMINED"))
+    monarch = result.get("monarch", "UNDETERMINED")
+    material_type = result.get("material_type", "Granite Stone Inscription")
+    provenance_site = result.get("geographical_provenance", result.get("location_en", "UNVERIFIED_PROVENANCE"))
+    classification_evidence = result.get("classification_evidence", "Palaeographical vocabulary markers & Unicode verification.")
+    classification_source = result.get("classification_source", "Kallvettu Palaeographical Classification Engine")
+
+    norm_ops = result.get("normalization_operations", [])
+    is_identical_norm = result.get("is_identical_to_diplomatic", False)
+    norm_status = result.get("normalization_status", "UNVERIFIED")
+
+    is_segmented = result.get("is_word_segmented", True)
+    seg_status = result.get("segmentation_status", "UNVERIFIED")
+
+    translation_status = result.get("translation_status", "TRANSLATION_UNAVAILABLE_UNVERIFIED")
+    is_translation_blocked = (translation_status == "TRANSLATION_UNAVAILABLE_UNVERIFIED") or ("மொழிபெயர்ப்பு கிடைக்கப்பெறவில்லை" in str(result.get("modern_tamil_translation", "")))
+
     md = f"""# EPIGRAPHICAL RESEARCH DOSSIER: {result.get('title_en', 'Ancient Inscription')}
 ### {result.get('title_ta', 'பண்டைய கல்வெட்டு ஆய்வு அறிக்கை')}
 
+**Scientific Dossier Status:** `{dossier_status}` | **Transcription Provenance:** `{prov_type}`  
+**Data Provenance Description:** {result.get('provenance', 'Kallvettu Epigraphical Intelligence Platform')}
+
 ---
 
-## 1. EPIGRAPHICAL METADATA
-- **Script (எழுத்து முறை):** {result.get('script_en', '')} / {result.get('script_ta', '')}
-- **Historical Era (காலம்):** {result.get('era_en', '')} / {result.get('era_ta', '')}
-- **Dynasty & Monarch (அரசமரபு):** {result.get('dynasty_en', '')} / {result.get('dynasty_ta', '')}
-- **Classification (வகைப்பாடு):** {result.get('category', 'Historical Epigraph')}
-- **Provenance (களம்):** {result.get('location_en', 'N/A')}
-- **Data Provenance:** {result.get('provenance', 'Kallvettu Archaeological Research Platform')}
+## 1. EPIGRAPHICAL CLASSIFICATION & HISTORICAL PROVENANCE
+- **Script Family:** {script_family}
+- **Script Variant:** {script_variant}
+- **Language (மொழி):** {language}
+- **Historical Period / Chronology (காலம்):** {historical_period}
+- **Dynastic Affiliation (அரசமரபு):** {dynasty}
+- **Associated Monarch (மன்னர்):** {monarch}
+- **Physical Medium & Material:** {material_type}
+- **Geographical Provenance (களம்):** {provenance_site}
+- **Classification Source & Evidence:** {classification_evidence} (Source: *{classification_source}*)
 
 ---
 
 ## 2. MULTI-TIER DECIPHERED INSCRIPTION TEXT
-### Tier 1: Diplomatic / Weathered Transcription (சிதைந்த கல்வெட்டுப் பதிவு)
+### Tier 1: Diplomatic / Lithic Verbatim Transcription (சிதைந்த கல்வெட்டுப் பதிவு)
+*Status: Verified Raw Lithic Preservation — Lacunae brackets and unedited characters preserved verbatim.*
 ```
 {result.get('diplomatic_text', result.get('weathered_text', ''))}
 ```
 
 ### Tier 2: Normalized Epigraphical Transcription (மீட்டமைக்கப்பட்ட உரை)
+*Editorial Status: {norm_status} | Operations Applied: {len(norm_ops)}*
 ```
-{result.get('normalized_text', result.get('restored_text', ''))}
+{result.get('normalized_text', result.get('restored_text', '')) if not (is_identical_norm and len(norm_ops) == 0 and norm_status == "UNVERIFIED") else "[Pending Editorial Normalization — Unedited Diplomatic Reading Retained]"}
 ```
+"""
+    if norm_ops:
+        md += "\n**Documented Normalization Operations:**\n"
+        md += "| Original Segment | Normalized Form | Operation | Justification |\n|---|---|---|---|\n"
+        for op in norm_ops:
+            md += f"| `{op.get('original', '')}` | `{op.get('reconstructed', op.get('normalized', ''))}` | {op.get('operation', 'lacuna_expansion')} | {op.get('rationale', op.get('editorial_justification', ''))} |\n"
+    elif is_identical_norm:
+        md += "\n*Note: No editorial normalization has been applied; raw lithic reading preserved unedited permanently.*\n"
 
+    md += f"""
 ### Tier 3: Word-Segmented Reading (புணர்ச்சி பிரித்த உரை)
+*Segmentation Status: {seg_status} | Verified Boundaries: {'YES' if seg_status == 'APPROVED' else 'NO (Unverified Proposal)'}*
 ```
-{result.get('word_segmented_text', '')}
+{result.get('word_segmented_text', '') if is_segmented else "[Unsegmented Raw Sequence — No Verified Word Boundaries]"}
 ```
 
 ---
 
 ## 3. TRANSLATIONS
-### Contemporary Modern Tamil Translation (இக்காலத் தமிழ் உரைநடை மொழிபெயர்ப்பு)
+"""
+    if is_translation_blocked:
+        md += """### Contemporary Modern Tamil Translation (இக்காலத் தமிழ் உரைநடை)
+> ⚠️ **மொழிபெயர்ப்பு கிடைக்கப்பெறவில்லை:** அடிப்படையான கல்வெட்டுப் பதிவு கல்வெட்டியல் ஆய்வாளர் சரிபார்ப்பிற்கு உட்படுத்தப்பட வேண்டும்.
+
+### Scholarly English Translation
+> ⚠️ **Translation unavailable: the underlying transcription requires epigraphical verification.**
+"""
+    else:
+        md += f"""### Contemporary Modern Tamil Translation (இக்காலத் தமிழ் உரைநடை மொழிபெயர்ப்பு)
 {result.get('modern_tamil_translation', '')}
 
 ### Scholarly English Translation
 {result.get('english_translation', '')}
+"""
 
----
-
-## 4. DETAILED HISTORICAL & SEMANTIC MEANING
-### Tamil Meaning & Cultural Background (தமிழ் வரலாற்று விளக்கம்)
+    md += "\n---\n\n## 4. DETAILED HISTORICAL & SEMANTIC MEANING\n"
+    if is_translation_blocked:
+        md += """*Status: Historical Interpretation Withheld — Requires Epigraphical Verification*
+> ⚠️ Authoritative historical deductions, endowment claims, or dynastic attributions cannot be made without verified transcription and peer-reviewed epigraphical evidence.
+"""
+    else:
+        md += f"""### Tamil Meaning & Cultural Background (தமிழ் வரலாற்று விளக்கம்)
 {result.get('tamil_meaning', '')}
 
 ### English Archaeological Commentary & Epigraphical Context
 {result.get('english_meaning', '')}
+"""
 
+    md += """
 ---
 
 ## 5. WORD-BY-WORD MORPHOLOGICAL & LEXICAL ANALYSIS
-| Ancient Word (சொல்) | Root / Stem (பகுதி) | POS / Grammar (இலக்கணம்) | Case / Suffix (வேற்றுமை) | Modern Tamil | English Meaning |
+| Ancient Word (சொல்) | Root / Stem (பகுதி) | POS / Grammar (இலக்கணம்) | Case Marker | Dictionary Source | Review Status |
 |---|---|---|---|---|---|
 """
     for w in result.get("words", []):
-        md += f"| **{w.get('word', '')}** | {w.get('root', '—')} | {w.get('pos', w.get('grammar', '—'))} | {w.get('case_marker', '—')} | {w.get('modern', '')} | {w.get('english', '')} |\n"
+        is_rec = w.get("is_recognized", True)
+        pos_val = w.get("pos", w.get("grammar", "—"))
+        if not is_rec or "Unrecognized" in str(pos_val):
+            md += f"| **{w.get('word', '')}** | — | *Unrecognized lexical sequence — requires epigraphist review.* | — | NONE | UNVERIFIED |\n"
+        else:
+            md += f"| **{w.get('word', '')}** | {w.get('root', '—')} | {pos_val} | {w.get('case_marker', '—')} | {w.get('dictionary_source', 'Kallvettu Lexicon')} | {w.get('review_status', 'APPROVED')} |\n"
 
     uncertains = result.get("uncertain_characters", [])
     if uncertains:
@@ -479,19 +599,100 @@ def generate_markdown_report(result: dict) -> str:
     if st.session_state.get("kiefe_fusion_bundle"):
         b = st.session_state.kiefe_fusion_bundle
         md += "\n---\n\n## 7. K-IEFE EVIDENCE FUSION & VERIFICATION DOSSIER\n"
-        md += f"- **Consensus Shannon Entropy:** `{b.consensus_report.mean_entropy:.3f} bits`\n"
+        md += f"- **Consensus Shannon Entropy:** `{b.consensus_report.mean_entropy:.3f} bits` *(Measures candidate dispersion, not historical veracity)*\n"
         md += f"- **Recommended Fusion Strategy:** `{b.fused_result.strategy_used}`\n"
         md += f"- **Baseline Provider:** `{b.fused_result.strongest_baseline_provider}`\n"
         md += f"- **Cryptographic SHA-256 Digest:** `{b.audit_record.cryptographic_sha256}`\n"
         md += f"- **Disputed Positions Count:** `{b.cross_verification_report.disputed_character_slots}`\n"
+        md += f"- **Inter-Engine Agreement Ratio:** `{b.cross_verification_report.agreement_ratio * 100:.1f}%` ({'NO_CONSENSUS / ZERO_AGREEMENT' if b.cross_verification_report.agreement_ratio == 0 else 'CANDIDATE_ALIGNMENT'})\n"
         md += f"- **Conservative Transcription (with Lacunae):** `{b.fused_result.conservative_text}`\n"
+        if getattr(b, "integrity_report", None):
+            ir = b.integrity_report
+            md += "\n### Epigraphical Evidence & Integrity Monitor Report\n"
+            md += f"> *\"{ir.scientific_principle}\"*\n\n"
+            md += f"- **Global Integrity Severity:** `{ir.highest_severity.value}`\n"
+            md += f"- **Correlated Preprocessing:** `{ir.correlated_dependencies.shared_preprocessing}`\n"
+            md += f"- **Correlated Provider Pairs:** `{', '.join(ir.correlated_dependencies.correlated_providers) or 'None'}`\n"
+            md += f"- **Repeated-Grapheme Anomalies Detected:** `{len(ir.repeated_anomalies)}`\n"
+            for an in ir.repeated_anomalies:
+                md += f"  - Engine `{an.provider_id}`: Grapheme `'{an.repeated_grapheme}'` repeated {an.repeat_count} times in `{an.context_snippet}` (Region: {an.region_id or 'N/A'})\n"
+            md += f"- **Truncation Diagnostics:**\n"
+            for td in ir.truncation_diagnostics:
+                md += f"  - `{td.provider_id}`: Status `{td.truncation_status.value}` ({td.severity.value}) | Chars: {td.character_count}, Graphemes: {td.grapheme_count} | {td.diagnostic_reason}\n"
 
     md += "\n---\n*Generated by Kallvettu — Ancient Inscription Restoration & Translation AI System.*"
     return md
 
 
 def generate_epidoc_xml(result: dict) -> str:
-    """Generates an international TEI/EpiDoc XML epigraphical document."""
+    """Generates an international TEI/EpiDoc XML epigraphical document with scholarly editorial metadata."""
+    import html
+    title = html.escape(str(result.get("title_en", "Ancient Inscription")))
+    ins_id = html.escape(str(result.get("id", "INS_001")))
+    loc = html.escape(str(result.get("geographical_provenance", result.get("location_en", "Tamil Nadu, India"))))
+    era = html.escape(str(result.get("historical_period", result.get("era_en", "UNDETERMINED"))))
+    script = html.escape(str(result.get("script_variant", result.get("script_en", "Classical Tamil"))))
+    dossier_status = html.escape(str(result.get("dossier_status", "UNVERIFIED")))
+    text_diplomatic = html.escape(str(result.get("diplomatic_text", result.get("weathered_text", ""))))
+    text_normalized = html.escape(str(result.get("normalized_text", result.get("restored_text", ""))))
+    ta_trans = html.escape(str(result.get("modern_tamil_translation", "")))
+    en_trans = html.escape(str(result.get("english_translation", "")) if result.get("english_translation") else "")
+    comm = html.escape(str(result.get("english_meaning", "")))
+
+    return f"""<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" xml:space="preserve" xml:lang="ta">
+    <teiHeader>
+        <fileDesc>
+            <titleStmt>
+                <title>{title}</title>
+            </titleStmt>
+            <publicationStmt>
+                <authority>Kallvettu Epigraphical Research Platform</authority>
+                <idno type="URI">{ins_id}</idno>
+                <availability status="{dossier_status.lower()}">
+                    <p>Epigraphical dataset status: {dossier_status}</p>
+                </availability>
+            </publicationStmt>
+            <sourceDesc>
+                <msDesc>
+                    <msIdentifier>
+                        <repository>{loc}</repository>
+                    </msIdentifier>
+                    <history>
+                        <origin>
+                            <origDate>{era}</origDate>
+                            <origPlace>{loc}</origPlace>
+                        </origin>
+                    </history>
+                </msDesc>
+            </sourceDesc>
+        </fileDesc>
+        <profileDesc>
+            <langUsage>
+                <language ident="ta">{script}</language>
+            </langUsage>
+        </profileDesc>
+    </teiHeader>
+    <text>
+        <body>
+            <div type="edition" subtype="diplomatic" xml:space="preserve" status="{dossier_status}">
+                <ab>{text_diplomatic}</ab>
+            </div>
+            <div type="edition" subtype="normalized" xml:space="preserve">
+                <ab>{text_normalized}</ab>
+            </div>
+            <div type="translation" xml:lang="ta">
+                <p>{ta_trans}</p>
+            </div>
+            <div type="translation" xml:lang="en">
+                <p>{en_trans}</p>
+            </div>
+            <div type="commentary">
+                <p>{comm}</p>
+            </div>
+        </body>
+    </text>
+</TEI>"""
     import html
     title = html.escape(str(result.get("title_en", "Ancient Inscription")))
     ins_id = html.escape(str(result.get("id", "INS_001")))
@@ -626,8 +827,12 @@ with st.sidebar:
     )
 
 # --- WORKBENCH MASTER HEADER ---
+@st.cache_data(ttl=60, show_spinner=False)
+def get_cached_provider_statuses() -> Dict[str, Any]:
+    return get_provider_manager().get_all_statuses()
+
 pm = get_provider_manager()
-all_statuses = pm.get_all_statuses()
+all_statuses = get_cached_provider_statuses()
 conf_providers = [info["name"] for info in all_statuses.values() if info.get("configured")]
 
 if len(conf_providers) > 1:
@@ -860,16 +1065,26 @@ elif nav_studio == "🔬 Digital Restoration Studio":
                 st.rerun()
 
         res = st.session_state.restoration_results or process_full_restoration(st.session_state.current_image)
+        if st.session_state.restoration_results is None:
+            st.session_state.restoration_results = res
 
         # Before & After Master Display
         st.markdown("#### 1. Archival Epigraphical Comparison: Before & After")
         c_orig, c_squeeze = st.columns(2)
         with c_orig:
             st.markdown("**ORIGINAL WEATHERED STONE SLAB**")
-            st.image(res["original"], width="stretch")
+            render_safe_image(
+                res.get("original") or (res.get("saved_paths", {}).get("original")),
+                fallback=res.get("original_pristine"),
+                error_label="Original stone photograph unavailable",
+            )
         with c_squeeze:
             st.markdown("**DIGITALLY RESTORED ARCHIVAL SQUEEZE SIMULATION (மை படி)**")
-            st.image(res["squeeze"], width="stretch")
+            render_safe_image(
+                res.get("squeeze") or (res.get("saved_paths", {}).get("squeeze")),
+                fallback=res.get("grooves"),
+                error_label="Archival squeeze simulation unavailable",
+            )
 
         st.markdown("---")
 
@@ -884,25 +1099,75 @@ elif nav_studio == "🔬 Digital Restoration Studio":
         p1, p2, p3, p4, p5 = st.columns(5)
         with p1:
             st.markdown("**Path A: Original**")
-            st.image(res["original"], width="stretch")
-            st.caption("✅ **Mandated for Sarvam Vision**\nPristine untouched pixels; prevents texture hallucination.")
+            path_a_img = (
+                res.get("original")
+                or (res.get("saved_paths", {}).get("original"))
+                or res.get("original_pristine")
+            )
+            render_safe_image(
+                path_a_img,
+                caption="✅ Mandated for Sarvam Vision\nPristine untouched pixels; prevents texture hallucination.",
+                fallback=res.get("original_pristine"),
+                error_label="Path A (Original) unavailable",
+            )
         with p2:
             st.markdown("**Path B: Mild CLAHE**")
-            mild_img = res.get("default_ocr_image") or res.get("clahe")
-            st.image(mild_img, width="stretch")
-            st.caption("✅ **Optimal for PaddleOCR**\nClip 1.8; stroke-preserving contrast with zero halo.")
+            path_b_img = (
+                res.get("mild_clahe")
+                or res.get("path_b")
+                or res.get("default_ocr_image")
+                or (res.get("saved_paths", {}).get("mild_clahe"))
+                or (res.get("saved_paths", {}).get("path_b"))
+                or (res.get("image_paths", {}).get("path_b", {}).get("image") if isinstance(res.get("image_paths"), dict) else None)
+                or (res.get("ocr_variants", {}).get("mild_clahe", {}).get("image") if isinstance(res.get("ocr_variants"), dict) else None)
+                or (apply_clahe_pillow(res["original"], clip_limit=1.8, blend_strength=0.85) if "original" in res else None)
+                or res.get("clahe")
+            )
+            render_safe_image(
+                path_b_img,
+                caption="✅ Optimal for PaddleOCR\nClip 1.8; stroke-preserving contrast with zero halo.",
+                fallback=res.get("clahe"),
+                error_label="Path B (Mild CLAHE) unavailable",
+            )
         with p3:
             st.markdown("**Standard CLAHE**")
-            st.image(res["clahe"], width="stretch")
-            st.caption("🔍 **Visual Studio**\nFull histogram equalization for human reading.")
+            clahe_img = (
+                res.get("clahe")
+                or (res.get("saved_paths", {}).get("clahe"))
+                or (apply_clahe_pillow(res["original"], clip_limit=float(st.session_state.clahe_boost)) if "original" in res else None)
+            )
+            render_safe_image(
+                clahe_img,
+                caption="🔍 Visual Studio\nFull histogram equalization for human reading.",
+                fallback=res.get("original"),
+                error_label="Standard CLAHE unavailable",
+            )
         with p4:
             st.markdown("**Denoised Grayscale**")
-            st.image(res["denoised"], width="stretch")
-            st.caption("🔍 **Bilateral Filter**\nAttenuates coarse granite flecks and lichen.")
+            denoised_img = (
+                res.get("denoised")
+                or (res.get("saved_paths", {}).get("denoised"))
+                or (denoise_stone_texture(res["clahe"]) if "clahe" in res else None)
+            )
+            render_safe_image(
+                denoised_img,
+                caption="🔍 Bilateral Filter\nAttenuates coarse granite flecks and lichen.",
+                fallback=res.get("clahe"),
+                error_label="Denoised Grayscale unavailable",
+            )
         with p5:
             st.markdown("**Path C: Edge Relief**")
-            st.image(res["grooves"], width="stretch")
-            st.caption("⚠️ **Inspection ONLY**\nChisel groove Sobel relief. Strictly prohibited for OCR.")
+            grooves_img = (
+                res.get("grooves")
+                or (res.get("saved_paths", {}).get("grooves"))
+                or (extract_chisel_grooves(res["denoised"]) if "denoised" in res else None)
+            )
+            render_safe_image(
+                grooves_img,
+                caption="⚠️ Inspection ONLY\nChisel groove Sobel relief. Strictly prohibited for OCR.",
+                fallback=res.get("squeeze"),
+                error_label="Path C (Edge Relief) unavailable",
+            )
 
         # Display Source Provenance & Image Hashes
         if st.session_state.source_identity:
@@ -923,23 +1188,54 @@ elif nav_studio == "🔬 Digital Restoration Studio":
         l1, l2, l3 = st.columns(3)
         with l1:
             st.caption("Layer 1: CLAHE Contrast Boost")
-            st.image(res["clahe"], width="stretch")
+            render_safe_image(
+                res.get("clahe") or (res.get("saved_paths", {}).get("clahe")),
+                fallback=res.get("original"),
+                error_label="Layer 1 (CLAHE) unavailable",
+            )
         with l2:
             st.caption("Layer 2: Chisel Groove Ridges (Sobel & Laplacian)")
-            st.image(res["grooves"], width="stretch")
+            render_safe_image(
+                res.get("grooves") or (res.get("saved_paths", {}).get("grooves")),
+                fallback=res.get("clahe"),
+                error_label="Layer 2 (Grooves) unavailable",
+            )
         with l3:
             st.caption("Layer 3: Sauvola Adaptive Binarized Glyphs")
-            st.image(res["binarized"], width="stretch")
+            render_safe_image(
+                res.get("binarized") or (res.get("saved_paths", {}).get("binarized")),
+                fallback=res.get("grooves"),
+                error_label="Layer 3 (Binarized) unavailable",
+            )
 
         l4, l5 = st.columns(2)
         with l4:
             st.caption("Layer 4: Image Enhancement Difference Map (|Original - CLAHE|)")
-            st.image(res["enhancement_diff"], width="stretch")
-            st.caption("Visualizes pixel-level contrast modifications made by the restoration pipeline.")
+            diff_img = (
+                res.get("enhancement_diff")
+                or (res.get("saved_paths", {}).get("enhancement_diff"))
+                or (compute_enhancement_difference_map(res["original"], res["clahe"]) if "original" in res and "clahe" in res else None)
+            )
+            render_safe_image(
+                diff_img,
+                caption="Visualizes pixel-level contrast modifications made by the restoration pipeline.",
+                fallback=res.get("clahe"),
+                error_label="Layer 4 (Difference Map) unavailable",
+            )
         with l5:
             st.caption("Layer 5: Experimental Surface Anomaly Map (Local Roughness Z-Score)")
-            st.image(res["anomaly_map"], width="stretch")
-            st.caption("⚠️ Experimental heuristic highlighting local roughness discontinuities (requires field verification).")
+            anom_img = (
+                res.get("anomaly_map")
+                or res.get("erosion_map")
+                or (res.get("saved_paths", {}).get("anomaly_map"))
+                or (compute_experimental_surface_anomalies(res["original"]) if "original" in res else None)
+            )
+            render_safe_image(
+                anom_img,
+                caption="⚠️ Experimental heuristic highlighting local roughness discontinuities (requires field verification).",
+                fallback=res.get("grooves"),
+                error_label="Layer 5 (Anomaly Map) unavailable",
+            )
 
         # Region of Interest (ROI) Character Zoom
         st.markdown("---")
@@ -962,10 +1258,11 @@ elif nav_studio == "🔬 Digital Restoration Studio":
             c_roi_orig, c_roi_sq = st.columns(2)
             with c_roi_orig:
                 st.caption(f"Original ROI ({roi_right - roi_left} × {roi_bottom - roi_top} px)")
-                st.image(cropped_roi, width="stretch")
+                render_safe_image(cropped_roi, error_label="Cropped original ROI unavailable")
             with c_roi_sq:
                 st.caption("Restored Squeeze Simulation ROI")
-                st.image(cropped_sq, width="stretch")
+                render_safe_image(cropped_sq, error_label="Cropped squeeze ROI unavailable")
+
 
         # Restoration Metadata Card
         st.markdown("---")
@@ -1049,26 +1346,230 @@ elif nav_studio == "✍️ Transcription Studio":
 
         with col_img_view:
             st.markdown("##### Visual Epigraph Reference")
+
+            # Layer selector
+            available_layers = {}
+            if st.session_state.current_image:
+                available_layers["Master Photograph"] = st.session_state.current_image
             if st.session_state.restoration_results:
-                base_img = st.session_state.restoration_results.get("clahe") or st.session_state.restoration_results["squeeze"]
-            elif st.session_state.current_image:
-                base_img = st.session_state.current_image
+                if st.session_state.restoration_results.get("clahe"):
+                    available_layers["Restored CLAHE"] = st.session_state.restoration_results["clahe"]
+                if st.session_state.restoration_results.get("squeeze"):
+                    available_layers["Lithic Squeeze Rubbing"] = st.session_state.restoration_results["squeeze"]
+
+            layer_names = list(available_layers.keys())
+            if layer_names:
+                sel_layer_name = st.selectbox(
+                    "Display Layer:",
+                    layer_names,
+                    index=0,
+                    key="sel_epigraph_layer",
+                    help="Select image representation: Master original photograph, CLAHE surface enhancement, or Squeeze rubbing."
+                )
+                base_img = available_layers[sel_layer_name]
             else:
                 base_img = None
 
-            # Heatmap Overlay Rendering
-            if base_img and st.session_state.kiefe_fusion_bundle and st.session_state.kiefe_show_heatmap:
-                heatmap_img = render_evidence_heatmap_overlay(base_img, st.session_state.kiefe_fusion_bundle)
-                st.image(heatmap_img, width="stretch", caption="⚡ K-IEFE Disputed Zone Heatmap (Red: High Dispute, Green: Consensus)")
-            elif base_img:
-                st.image(base_img, width="stretch")
-
-            if st.session_state.kiefe_fusion_bundle:
+            # Heatmap Overlay & Controls
+            bundle = st.session_state.kiefe_fusion_bundle
+            if bundle and base_img:
                 st.session_state.kiefe_show_heatmap = st.checkbox(
                     "🗺️ Overlay K-IEFE Disputed Zone Heatmap",
                     value=st.session_state.kiefe_show_heatmap,
-                    help="Highlights high consensus-entropy zones in red/amber with slot tags."
+                    help="Highlights inter-engine agreement and dispute zones (Red, Amber, Green, Grey)."
                 )
+
+                if st.session_state.kiefe_show_heatmap:
+                    ctrl_c1, ctrl_c2 = st.columns([1.2, 1.0])
+                    with ctrl_c1:
+                        st.session_state.heatmap_opacity = st.slider(
+                            "Overlay Opacity:",
+                            min_value=0.10,
+                            max_value=0.85,
+                            value=float(st.session_state.heatmap_opacity),
+                            step=0.05,
+                            key="slider_heatmap_opacity"
+                        )
+                    with ctrl_c2:
+                        st.session_state.heatmap_show_labels = st.checkbox(
+                            "Show Badges (R1..)",
+                            value=st.session_state.heatmap_show_labels,
+                            key="chk_heatmap_labels"
+                        )
+
+                    # Visible Color Semantics Legend
+                    st.markdown(
+                        """
+                        <div style="font-size: 0.8rem; padding: 4px 8px; border-radius: 4px; background: rgba(30,35,42,0.6); margin-bottom: 6px; display: flex; gap: 8px; flex-wrap: wrap;">
+                            <span>🟥 <b>Red:</b> High Dispute (H > 1.0 / H<sub>norm</sub> > 0.65)</span>
+                            <span>🟧 <b>Amber:</b> Divided (0.5 < H ≤ 1.0)</span>
+                            <span>🟩 <b>Green:</b> Agreement (H ≤ 0.5)</span>
+                            <span>⬜ <b>Grey:</b> Not Assessable</span>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+
+                    heatmap_img = render_evidence_heatmap_overlay(
+                        base_img,
+                        bundle,
+                        opacity=st.session_state.heatmap_opacity,
+                        selected_slot=st.session_state.heatmap_selected_slot,
+                        show_labels=st.session_state.heatmap_show_labels,
+                        manual_coords=st.session_state.heatmap_manual_coords
+                    )
+                    st.image(heatmap_img, width="stretch", caption=f"⚡ K-IEFE Disputed Zone Heatmap — Reticle: Slot #{st.session_state.heatmap_selected_slot + 1}")
+                else:
+                    st.image(base_img, width="stretch")
+
+                # Slot / Region Inspector
+                adj_items = getattr(bundle, "adjudication_items", [])
+                if adj_items:
+                    st.markdown("---")
+                    st.markdown("###### 🔍 Interactive Region & Slot Inspector")
+                    slot_labels = []
+                    for idx, it in enumerate(adj_items):
+                        if not it.is_assessable:
+                            sev_lbl = "NOT ASSESSABLE"
+                        elif it.consensus_entropy > 1.0 or (it.normalized_entropy and it.normalized_entropy > 0.65):
+                            sev_lbl = "HIGH DISPUTE"
+                        elif it.consensus_entropy > 0.5:
+                            sev_lbl = "DIVIDED"
+                        else:
+                            sev_lbl = "AGREEMENT"
+                        read_val = it.approved_text or it.fused_candidate
+                        slot_labels.append(f"Slot #{idx + 1}: R{idx + 1} ['{read_val}'] — {sev_lbl} (H={it.consensus_entropy:.2f})")
+
+                    sel_idx = min(st.session_state.heatmap_selected_slot, len(adj_items) - 1)
+                    chosen_slot = st.selectbox(
+                        "Select Inscriptional Region to Inspect:",
+                        range(len(adj_items)),
+                        index=sel_idx,
+                        format_func=lambda i: slot_labels[i],
+                        key="sel_active_region_box"
+                    )
+                    st.session_state.heatmap_selected_slot = chosen_slot
+                    active_item = adj_items[chosen_slot]
+
+                    # Region Crops: Original Master vs Restored Layer
+                    reg_coords = st.session_state.heatmap_manual_coords.get(chosen_slot, active_item.pixel_crop_coords)
+                    crops = crop_region_layers(
+                        st.session_state.current_image or base_img,
+                        reg_coords,
+                        restored_image=st.session_state.restoration_results.get("clahe") if st.session_state.restoration_results else None
+                    )
+                    cr1, cr2 = st.columns(2)
+                    with cr1:
+                        st.caption("Original Master Crop:")
+                        st.image(crops["original"], width="stretch")
+                    with cr2:
+                        st.caption("Restored CLAHE Crop:")
+                        st.image(crops["restored"], width="stretch")
+
+                    # Metrics & Entropy
+                    m_c1, m_c2, m_c3 = st.columns(3)
+                    with m_c1:
+                        st.metric("Raw Entropy", f"{active_item.consensus_entropy:.3f} bits")
+                    with m_c2:
+                        norm_e = f"{active_item.normalized_entropy:.3f}" if active_item.normalized_entropy is not None else "N/A"
+                        st.metric("Norm Entropy", norm_e)
+                    with m_c3:
+                        st.metric("Engines", f"{active_item.participating_providers_count}")
+
+                    # Provider readings
+                    if active_item.provider_candidates:
+                        p_rows = []
+                        for pid, p_char in active_item.provider_candidates.items():
+                            p_conf = active_item.provider_confidences.get(pid)
+                            p_rows.append({
+                                "Engine": pid,
+                                "Reading": p_char,
+                                "Confidence": f"{p_conf * 100:.1f}%" if p_conf is not None else "N/A"
+                            })
+                        st.dataframe(pd.DataFrame(p_rows), width="stretch", hide_index=True)
+
+                    # Manual Coordinates Override
+                    with st.expander(f"📐 Manual Coordinate Correction (R{chosen_slot + 1})", expanded=False):
+                        cx1, cy1, cx2, cy2 = reg_coords
+                        c_w, c_h = base_img.size
+                        mc1, mc2 = st.columns(2)
+                        with mc1:
+                            new_x1 = st.number_input("X1 (Left px)", min_value=0, max_value=c_w, value=int(cx1), key=f"inp_x1_{chosen_slot}")
+                            new_y1 = st.number_input("Y1 (Top px)", min_value=0, max_value=c_h, value=int(cy1), key=f"inp_y1_{chosen_slot}")
+                        with mc2:
+                            new_x2 = st.number_input("X2 (Right px)", min_value=0, max_value=c_w, value=int(cx2), key=f"inp_x2_{chosen_slot}")
+                            new_y2 = st.number_input("Y2 (Bottom px)", min_value=0, max_value=c_h, value=int(cy2), key=f"inp_y2_{chosen_slot}")
+                        mb1, mb2 = st.columns(2)
+                        with mb1:
+                            if st.button("💾 Apply Coordinates", key=f"btn_apply_coord_{chosen_slot}"):
+                                st.session_state.heatmap_manual_coords[chosen_slot] = (new_x1, new_y1, new_x2, new_y2)
+                                active_item.pixel_crop_coords = (new_x1, new_y1, new_x2, new_y2)
+                                st.success("✓ Coordinates updated!")
+                                st.rerun()
+                        with mb2:
+                            if st.button("↺ Reset", key=f"btn_reset_coord_{chosen_slot}"):
+                                st.session_state.heatmap_manual_coords.pop(chosen_slot, None)
+                                st.rerun()
+
+                    # Quick Adjudication Action
+                    with st.expander(f"⚖️ Review & Adjudicate (R{chosen_slot + 1})", expanded=False):
+                        st.markdown(f"**Dispute Reason:** {active_item.disagreement_reason}")
+                        st.markdown(f"**Current Decision:** `{active_item.current_decision.upper()}`")
+                        qa1, qa2 = st.columns(2)
+                        with qa1:
+                            if st.button(f"✓ Accept Fused ('{active_item.fused_candidate}')", key=f"qa_acc_{chosen_slot}"):
+                                if st.session_state.kiefe_adjudication_manager:
+                                    st.session_state.kiefe_adjudication_manager.record_decision(
+                                        active_item.item_id,
+                                        AdjudicationDecision.ACCEPTED_FUSION,
+                                        active_item.fused_candidate,
+                                        reviewer=st.session_state.kiefe_reviewer_name,
+                                        rationale="Accepted fused candidate in epigraph reference."
+                                    )
+                                active_item.current_decision = AdjudicationDecision.ACCEPTED_FUSION.value
+                                active_item.approved_text = active_item.fused_candidate
+                                st.success(f"✓ Accepted fused candidate '{active_item.fused_candidate}'!")
+                                st.rerun()
+                        with qa2:
+                            if st.button("🚫 Mark Illegible [---]", key=f"qa_ill_{chosen_slot}"):
+                                if st.session_state.kiefe_adjudication_manager:
+                                    st.session_state.kiefe_adjudication_manager.record_decision(
+                                        active_item.item_id,
+                                        AdjudicationDecision.MARK_ILLEGIBLE,
+                                        "[---]",
+                                        reviewer=st.session_state.kiefe_reviewer_name,
+                                        rationale="Physically illegible stone surface."
+                                    )
+                                active_item.current_decision = AdjudicationDecision.MARK_ILLEGIBLE.value
+                                active_item.approved_text = "[---]"
+                                st.warning("Recorded as [---]")
+                                st.rerun()
+
+                        # Adopt Engine reading
+                        cands = [c for c in active_item.alternative_readings if c and c != "-"]
+                        if cands:
+                            sel_cand = st.selectbox("Adopt Engine Candidate:", cands, key=f"qa_sel_cand_{chosen_slot}")
+                            if st.button("📋 Adopt Reading", key=f"qa_adopt_btn_{chosen_slot}"):
+                                if st.session_state.kiefe_adjudication_manager:
+                                    st.session_state.kiefe_adjudication_manager.record_decision(
+                                        active_item.item_id,
+                                        AdjudicationDecision.ACCEPTED_PROVIDER,
+                                        sel_cand,
+                                        reviewer=st.session_state.kiefe_reviewer_name,
+                                        rationale=f"Adopted engine candidate {sel_cand}"
+                                    )
+                                active_item.current_decision = AdjudicationDecision.ACCEPTED_PROVIDER.value
+                                active_item.approved_text = sel_cand
+                                st.success(f"✓ Adopted reading '{sel_cand}'!")
+                                st.rerun()
+
+                    # Epigraphical principle alert
+                    st.caption(
+                        "🛡️ **Epigraphical Rule:** Model agreement does NOT equal historical verification. "
+                        "Candidate-distribution entropy measures dispersion, not physical stone truth."
+                    )
+            elif base_img:
+                st.image(base_img, width="stretch")
 
             # OCR Preprocessing Variant Selection (Never Sobel-only or charcoal squeeze by default)
             ocr_vars = st.session_state.restoration_results.get("ocr_variants") if st.session_state.restoration_results else None
@@ -1117,12 +1618,13 @@ elif nav_studio == "✍️ Transcription Studio":
                             image_quality="weathered",
                             damage_category="weathered",
                             source_identity=st.session_state.source_identity,
-                            preprocessing_variant=f"Path B: {chosen_var_label}"
+                            preprocessing_variant=f"Path B: {chosen_var_label}",
+                            existing_adjudication_manager=st.session_state.kiefe_adjudication_manager,
                         )
                         st.session_state.kiefe_fusion_bundle = bundle
 
-                        # Initialize review manager
-                        rev_mgr = ResearcherReviewManager()
+                        # Initialize review manager preserving approved revisions
+                        rev_mgr = st.session_state.kiefe_adjudication_manager or ResearcherReviewManager()
                         for item in bundle.adjudication_items:
                             rev_mgr.add_item(item)
                         st.session_state.kiefe_adjudication_manager = rev_mgr
@@ -1170,6 +1672,8 @@ elif nav_studio == "✍️ Transcription Studio":
                     st.session_state.analysis_output = analyze_custom_epigraph_text(
                         new_text,
                         provenance="Researcher Verified Transcription",
+                        provenance_type="RESEARCHER_APPROVED",
+                        is_researcher_approved=True,
                         allow_preset_match=False,
                         source_identity=st.session_state.source_identity
                     )
@@ -1205,9 +1709,10 @@ elif nav_studio == "✍️ Transcription Studio":
                         image_quality="weathered",
                         damage_category="weathered",
                         source_identity=st.session_state.source_identity,
+                        existing_adjudication_manager=st.session_state.kiefe_adjudication_manager,
                     )
                     st.session_state.kiefe_fusion_bundle = bundle
-                    rev_mgr = ResearcherReviewManager()
+                    rev_mgr = st.session_state.kiefe_adjudication_manager or ResearcherReviewManager()
                     for item in bundle.adjudication_items:
                         rev_mgr.add_item(item)
                     st.session_state.kiefe_adjudication_manager = rev_mgr
@@ -1238,6 +1743,8 @@ elif nav_studio == "✍️ Transcription Studio":
                                 st.session_state.analysis_output = analyze_custom_epigraph_text(
                                     ocr_res.text,
                                     provenance=f"Adopted Reading: {p_name}",
+                                    provenance_type="RAW_PROVIDER_OCR",
+                                    is_researcher_approved=False,
                                     allow_preset_match=False,
                                     source_identity=st.session_state.source_identity
                                 )
@@ -1274,6 +1781,8 @@ elif nav_studio == "✍️ Transcription Studio":
                         st.session_state.analysis_output = analyze_custom_epigraph_text(
                             comp.consensus_text,
                             provenance="Multi-Engine Consensus Reading",
+                            provenance_type="MULTI_ENGINE_COMPARISON",
+                            is_researcher_approved=False,
                             allow_preset_match=False,
                             source_identity=st.session_state.source_identity
                         )
@@ -1612,6 +2121,7 @@ elif nav_studio == "📑 Research Dossier":
         json_content = json.dumps(output, ensure_ascii=False, indent=2)
         epidoc_content = generate_epidoc_xml(output)
         try:
+            from services.epidoc.bundle import EpiDocArchiveBundler
             bundle_zip = EpiDocArchiveBundler.create_research_bundle_zip(inscription_id=output.get('id', 'export'), **output)
         except Exception:
             bundle_zip = b""
@@ -1659,6 +2169,9 @@ elif nav_studio == "📑 Research Dossier":
 # STUDIO G2: INDIA EPIGRAPHICAL GEOGRAPHIC ATLAS
 # ==============================================================================
 elif nav_studio == "🗺️ India Epigraphical Geographic Atlas":
+    from services.geo_atlas.models import GeoInscriptionRecord
+    from services.geo_atlas.ui_atlas import render_geographic_atlas_studio
+
     def _open_atlas_record_in_workbench(rec: GeoInscriptionRecord):
         if rec.preset_id and find_preset_by_id(rec.preset_id):
             load_preset_into_state(rec.preset_id)
@@ -1727,6 +2240,7 @@ elif nav_studio == "🗺️ India Epigraphical Geographic Atlas":
 # STUDIO G3: HISTORICAL GLYPH ANNOTATION STUDIO (PHASE 1)
 # ==============================================================================
 elif nav_studio == "🏷️ Glyph Annotation Studio":
+    from services.research.glyph_annotation_ui import render_glyph_annotation_studio
     render_glyph_annotation_studio()
 
 
@@ -1752,7 +2266,6 @@ elif nav_studio == "🔬 Research Evaluation Studio":
 elif nav_studio == "🔍 Epigraphical Search Engine":
     try:
         import services.ui_studios
-        importlib.reload(services.ui_studios)
         services.ui_studios.render_epigraphical_search_studio()
     except Exception as e:
         st.error(f"⚠️ Error loading Epigraphical Search Studio: {e}")
@@ -1765,7 +2278,6 @@ elif nav_studio == "🔍 Epigraphical Search Engine":
 elif nav_studio == "🕸️ Historical Knowledge Graph":
     try:
         import services.ui_studios
-        importlib.reload(services.ui_studios)
         services.ui_studios.render_knowledge_graph_studio()
     except Exception as e:
         st.error(f"⚠️ Error loading Knowledge Graph Studio: {e}")
@@ -1778,9 +2290,6 @@ elif nav_studio == "🕸️ Historical Knowledge Graph":
 elif nav_studio == "🔎 IIIF Deep-Zoom Inscription Viewer":
     try:
         import services.ui_studios
-        import services.iiif.viewer_component
-        importlib.reload(services.iiif.viewer_component)
-        importlib.reload(services.ui_studios)
         services.ui_studios.render_iiif_studio()
     except Exception as e:
         st.error(f"⚠️ Error loading IIIF Deep-Zoom Studio: {e}")
@@ -1793,7 +2302,6 @@ elif nav_studio == "🔎 IIIF Deep-Zoom Inscription Viewer":
 elif nav_studio == "💡 Photometric RTI & Relighting":
     try:
         import services.ui_studios
-        importlib.reload(services.ui_studios)
         services.ui_studios.render_rti_studio()
     except Exception as e:
         st.error(f"⚠️ Error loading Photometric RTI Studio: {e}")
@@ -2098,6 +2606,7 @@ elif nav_studio == "⚙️ Settings":
         with col_run_eval:
             if st.button("🔄 Run Live Reproducible Benchmark", width="stretch"):
                 with st.spinner("🔬 Running full empirical evaluation suite across 8 inscriptions..."):
+                    from evaluation_engine import run_full_evaluation, export_evaluation_report
                     t_eval0 = time.perf_counter()
                     st.session_state.evaluation_results = run_full_evaluation()
                     t_eval_lat = time.perf_counter() - t_eval0
@@ -2219,6 +2728,7 @@ elif nav_studio == "⚙️ Settings":
             st.markdown("---")
             d_c1, d_c2 = st.columns(2)
             with d_c1:
+                from evaluation_engine import generate_evaluation_markdown
                 md_report = generate_evaluation_markdown(ev)
                 st.download_button(
                     "📥 Download Scientific Evaluation Report (.MD)",

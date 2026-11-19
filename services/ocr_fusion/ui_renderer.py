@@ -14,6 +14,18 @@ from PIL import Image, ImageDraw, ImageFont
 import streamlit as st
 
 from services.ocr_fusion import MasterEvidenceFusionBundle
+from services.ocr_fusion.integrity_monitor import (
+    EpigraphicalIntegrityMonitor,
+    EpigraphicalIntegrityReport,
+    TruncationStatus,
+    IntegritySeverity,
+    ProviderTruncationDiagnostic,
+    RepeatedGraphemeAnomaly,
+    CorrelatedDependencyInfo,
+    SCIENTIFIC_ENTROPY_PRINCIPLE,
+    PHYSICAL_EVIDENCE_SAFEGUARD_PRINCIPLE,
+    safe_str,
+)
 from services.ocr_fusion.researcher_review import (
     ResearcherReviewManager,
     AdjudicationItem,
@@ -29,16 +41,59 @@ from ui_components import render_metric_card
 from nlp_translation_engine import analyze_custom_epigraph_text
 
 
+def _get_overlay_font(size: int = 12) -> Tuple[Any, bool]:
+    """
+    Attempts to locate a Tamil-compatible Unicode font.
+    Returns (font_object, has_tamil_support: bool).
+    """
+    candidate_paths = [
+        "C:/Windows/Fonts/Nirmala.ttf",
+        "C:/Windows/Fonts/Nirmalab.ttf",
+        "C:/Windows/Fonts/latha.ttf",
+        "C:/Windows/Fonts/vijaya.ttf",
+        "Nirmala.ttf",
+        "Latha.ttf",
+        "Vijaya.ttf",
+        "C:/Windows/Fonts/arial.ttf",
+        "arial.ttf",
+        "DejaVuSans.ttf",
+    ]
+    for p in candidate_paths:
+        try:
+            f = ImageFont.truetype(p, size)
+            # Check if font supports Tamil character
+            is_tamil_font = any(n in p.lower() for n in ["nirmala", "latha", "vijaya"])
+            return f, is_tamil_font
+        except Exception:
+            continue
+    try:
+        return ImageFont.load_default(), False
+    except Exception:
+        return None, False
+
+
 def render_evidence_heatmap_overlay(
     image: Image.Image,
-    bundle: MasterEvidenceFusionBundle
+    bundle: MasterEvidenceFusionBundle,
+    opacity: float = 0.35,
+    selected_slot: Optional[int] = None,
+    show_labels: bool = True,
+    manual_coords: Optional[Dict[int, Tuple[int, int, int, int]]] = None,
 ) -> Image.Image:
     """
     Renders an archaeological evidence heatmap overlay on top of the stone inscription.
-    Draws color-coded bounding boxes around disputed or high-entropy inscriptional zones:
-    - Red (H >= 0.8): High dispute
-    - Amber (0.5 <= H < 0.8): Divided consensus
-    - Green (H < 0.5): Mild / Agreement
+    
+    Guarantees:
+    - Transparent overlays so physical carved stone incisions remain clearly visible underneath.
+    - True 4-color scientific disagreement semantics:
+      * Red (H > 1.0 bits / H_norm > 0.65): High model disagreement
+      * Amber (0.5 < H <= 1.0 bits / 0.35 < H_norm <= 0.65): Moderate model disagreement
+      * Green (H <= 0.5 bits): Model agreement
+      * Grey: Insufficient evidence or unavailable diagnostics (NOT_ASSESSABLE / Single Engine)
+    - Replaces unreadable square placeholder boxes (□) with valid Unicode labels and fallback.
+    - Staggered label positioning to prevent overlapping text.
+    - Distinctive archaeological reticle highlight for the selected slot.
+    - Never fabricates full-width red boxes; respects resolved physical coordinates.
     """
     if not isinstance(image, Image.Image):
         return image
@@ -48,54 +103,424 @@ def render_evidence_heatmap_overlay(
     draw = ImageDraw.Draw(overlay)
     w, h = img.size
 
-    try:
-        font_size = max(11, int(min(w, h) * 0.022))
-        font = ImageFont.truetype("arial.ttf", font_size)
-    except Exception:
-        font = ImageFont.load_default()
+    # Font scaling
+    font_size = max(11, int(round(min(w, h) * 0.024)))
+    font, has_tamil = _get_overlay_font(font_size)
+
+    # Calculate alpha based on opacity parameter
+    clamped_opacity = max(0.08, min(0.90, float(opacity)))
+    fill_alpha = int(round(clamped_opacity * 255))
 
     items = getattr(bundle, "adjudication_items", [])
+    if not items:
+        return img.convert("RGB")
+
     for it in items:
-        coords = getattr(it, "pixel_crop_coords", None)
-        bbox = getattr(it, "bounding_box", None)
-        if coords and coords != (0, 0, 0, 0):
-            x1, y1, x2, y2 = coords
-        elif bbox:
-            x1 = int(bbox.xmin * w)
-            y1 = int(bbox.ymin * h)
-            x2 = int(bbox.xmax * w)
-            y2 = int(bbox.ymax * h)
-        else:
+        # Check manual coordinates override first
+        reg_idx = getattr(it, "region_index", 0)
+        coords = None
+        if manual_coords and reg_idx in manual_coords:
+            coords = manual_coords[reg_idx]
+        elif getattr(it, "pixel_crop_coords", None) and it.pixel_crop_coords != (0, 0, 0, 0):
+            coords = it.pixel_crop_coords
+        elif getattr(it, "bounding_box", None):
+            bbox = it.bounding_box
+            coords = (
+                int(round(bbox.xmin * w if bbox.xmin <= 1.0 else bbox.xmin)),
+                int(round(bbox.ymin * h if bbox.ymin <= 1.0 else bbox.ymin)),
+                int(round(bbox.xmax * w if bbox.xmax <= 1.0 else bbox.xmax)),
+                int(round(bbox.ymax * h if bbox.ymax <= 1.0 else bbox.ymax)),
+            )
+
+        if not coords or coords == (0, 0, 0, 0):
             continue
 
+        x1, y1, x2, y2 = coords
+        x1 = max(0, min(x1, w - 2))
+        y1 = max(0, min(y1, h - 2))
+        x2 = max(x1 + 3, min(x2, w))
+        y2 = max(y1 + 3, min(y2, h))
+
         entropy = getattr(it, "consensus_entropy", 0.0)
-        if entropy >= 0.8:
-            border_col = (220, 53, 69, 255)  # Crimson Red
-            fill_col = (220, 53, 69, 50)
-            tag = "HIGH DISPUTE"
-        elif entropy >= 0.5:
-            border_col = (255, 152, 0, 255)  # Amber
-            fill_col = (255, 152, 0, 45)
-            tag = "DIVIDED"
+        norm_entropy = getattr(it, "normalized_entropy", None)
+        is_assessable = getattr(it, "is_assessable", True)
+        participating = getattr(it, "participating_providers_count", 0)
+
+        # 4-Color Semantics
+        if not is_assessable or participating < 2:
+            # Grey: Insufficient evidence or unavailable diagnostics
+            border_col = (148, 163, 184, 255)  # Slate Grey
+            fill_col = (148, 163, 184, fill_alpha)
+            tag_text_col = (255, 255, 255, 255)
+            badge_bg = (100, 116, 139, 235)
+            tag_name = "GREY"
+        elif entropy > 1.0 or (norm_entropy is not None and norm_entropy > 0.65):
+            # Red: High model disagreement
+            border_col = (239, 68, 68, 255)  # Red 500
+            fill_col = (239, 68, 68, fill_alpha)
+            tag_text_col = (255, 255, 255, 255)
+            badge_bg = (185, 28, 28, 240)
+            tag_name = "HIGH_DISPUTE"
+        elif entropy > 0.5 or (norm_entropy is not None and norm_entropy > 0.35):
+            # Amber: Moderate model disagreement
+            border_col = (245, 158, 11, 255)  # Amber 500
+            fill_col = (245, 158, 11, fill_alpha)
+            tag_text_col = (15, 23, 42, 255)
+            badge_bg = (217, 119, 6, 240)
+            tag_name = "DIVIDED"
         else:
-            border_col = (40, 167, 69, 255)  # Green
-            fill_col = (40, 167, 69, 35)
-            tag = "CONSENSUS"
+            # Green: Model agreement
+            border_col = (34, 197, 94, 255)  # Green 500
+            fill_col = (34, 197, 94, fill_alpha)
+            tag_text_col = (255, 255, 255, 255)
+            badge_bg = (21, 128, 61, 235)
+            tag_name = "AGREEMENT"
 
-        # Draw bounding rectangle with semi-transparent fill
-        draw.rectangle([x1, y1, x2, y2], outline=border_col, width=3, fill=fill_col)
+        is_selected = (selected_slot is not None and reg_idx == selected_slot)
 
-        # Label tag above box
-        lbl = f"Slot #{it.region_index + 1}: {it.fused_candidate} [H={entropy:.2f}]"
-        try:
-            tbox = draw.textbbox((x1, max(0, y1 - 22)), lbl, font=font)
-            draw.rectangle(tbox, fill=border_col)
-            draw.text((x1 + 3, max(0, y1 - 21)), lbl, fill=(255, 255, 255, 255), font=font)
-        except Exception:
-            draw.text((x1 + 2, max(0, y1 - 15)), lbl, fill=border_col)
+        # Draw semi-transparent bounding box
+        draw.rectangle([x1, y1, x2, y2], outline=border_col, width=2 if not is_selected else 3, fill=fill_col)
+
+        # Selected Slot Highlight Reticle
+        if is_selected:
+            # Outer white halo
+            draw.rectangle([max(0, x1 - 3), max(0, y1 - 3), min(w, x2 + 3), min(h, y2 + 3)], outline=(255, 255, 255, 255), width=2)
+            # Gold corner brackets
+            gold = (197, 161, 90, 255)
+            c_len = min(8, max(4, (x2 - x1) // 3))
+            # TL
+            draw.line([(x1 - 4, y1 - 4), (x1 - 4 + c_len, y1 - 4)], fill=gold, width=3)
+            draw.line([(x1 - 4, y1 - 4), (x1 - 4, y1 - 4 + c_len)], fill=gold, width=3)
+            # TR
+            draw.line([(x2 + 4, y1 - 4), (x2 + 4 - c_len, y1 - 4)], fill=gold, width=3)
+            draw.line([(x2 + 4, y1 - 4), (x2 + 4, y1 - 4 + c_len)], fill=gold, width=3)
+            # BL
+            draw.line([(x1 - 4, y2 + 4), (x1 - 4 + c_len, y2 + 4)], fill=gold, width=3)
+            draw.line([(x1 - 4, y2 + 4), (x1 - 4, y2 + 4 - c_len)], fill=gold, width=3)
+            # BR
+            draw.line([(x2 + 4, y2 + 4), (x2 + 4 - c_len, y2 + 4)], fill=gold, width=3)
+            draw.line([(x2 + 4, y2 + 4), (x2 + 4, y2 + 4 - c_len)], fill=gold, width=3)
+
+        # Render Label Badge
+        if show_labels:
+            cand_char = getattr(it, "fused_candidate", "")
+            slot_id_str = f"R{reg_idx + 1}"
+            if has_tamil and cand_char and cand_char != "-" and len(cand_char) <= 3:
+                lbl = f"{slot_id_str}: {cand_char}"
+            else:
+                lbl = slot_id_str
+
+            # Staggered label positioning: alternate top/bottom to prevent overlaps
+            badge_h = max(14, int(font_size * 1.3))
+            badge_w = max(24, int(len(lbl) * font_size * 0.75))
+
+            if reg_idx % 2 == 0:
+                # Even slots: prefer above box
+                if y1 >= badge_h + 3:
+                    by1 = y1 - badge_h - 2
+                    by2 = y1 - 2
+                else:
+                    by1 = y1 + 2
+                    by2 = y1 + badge_h + 2
+            else:
+                # Odd slots: prefer below box
+                if y2 + badge_h + 3 <= h:
+                    by1 = y2 + 2
+                    by2 = y2 + badge_h + 2
+                else:
+                    by1 = max(0, y1 - badge_h - 2)
+                    by2 = max(badge_h, y1 - 2)
+
+            bx1 = max(0, min(x1, w - badge_w - 2))
+            bx2 = min(w, bx1 + badge_w)
+
+            draw.rectangle([bx1, by1, bx2, by2], fill=badge_bg, outline=border_col, width=1)
+            if font:
+                draw.text((bx1 + 3, by1 + 1), lbl, fill=tag_text_col, font=font)
+            else:
+                draw.text((bx1 + 3, by1 + 1), lbl, fill=tag_text_col)
 
     combined = Image.alpha_composite(img, overlay)
     return combined.convert("RGB")
+
+
+def render_epigraphical_evidence_integrity_monitor(
+    bundle: MasterEvidenceFusionBundle,
+    provider_manager: Any = None,
+    ocr_target: Any = None,
+    restoration_results: Optional[Dict[str, Any]] = None,
+) -> None:
+    """
+    Renders the scientific Epigraphical Evidence & Integrity Monitor:
+    A. Consensus entropy and historical uncertainty (with exact principle quote)
+    B. OCR completeness and truncation diagnostics (strict 5-state diagnostics)
+    C. Repeated-character anomaly monitoring (Tamil graphemes)
+    D. Provider execution status
+    E. Physical image evidence verification
+    F. Researcher adjudication status & non-overwriting guarantee
+    """
+    st.markdown("### 🛡️ Epigraphical Evidence & Integrity Monitor")
+    st.caption(
+        "Scientific evidence integrity assessment, OCR region truncation monitoring, "
+        "Tamil grapheme anomaly detection, and non-destructive researcher adjudication."
+    )
+
+    report = getattr(bundle, "integrity_report", None)
+    if not report:
+        monitor = EpigraphicalIntegrityMonitor()
+        active_results = {}
+        if hasattr(st.session_state, "ocr_comparison_result") and st.session_state.ocr_comparison_result:
+            active_results = getattr(st.session_state.ocr_comparison_result, "provider_results", {})
+        report = monitor.build_integrity_report(
+            results=active_results,
+            input_image=ocr_target,
+            cross_verification_report=bundle.cross_verification_report,
+            consensus_report=bundle.consensus_report,
+            adjudication_items=bundle.adjudication_items,
+        )
+
+    # Global Severity Banner
+    sev_colors = {
+        IntegritySeverity.INFO: ("#22c55e", "Information (Nominal)"),
+        IntegritySeverity.WARNING: ("#f59e0b", "Warning (Anomalies / Empty Outputs)"),
+        IntegritySeverity.REVIEW_REQUIRED: ("#f97316", "Review Required (Truncation / High Dispute)"),
+        IntegritySeverity.PROVIDER_ERROR: ("#ef4444", "Provider Error (Engine Exceptions)"),
+    }
+    sev_color, sev_label = sev_colors.get(report.highest_severity, ("#94a3b8", "Information"))
+    st.markdown(
+        f"""
+        <div style="border-left: 4px solid {sev_color}; background: rgba(30,35,42,0.6); padding: 10px 14px; border-radius: 4px; margin-bottom: 16px;">
+            <span style="font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8;">Global Integrity Severity:</span><br/>
+            <span style="font-size: 1.15rem; font-weight: bold; color: {sev_color};">{sev_label}</span>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    # 6 Specialized Sub-Sections (A to F)
+    im_tabs = st.tabs([
+        "📊 A. Consensus Entropy",
+        "📏 B. OCR Truncation Diagnostics",
+        "🔂 C. Repeated-Grapheme Anomalies",
+        "🤖 D. Provider Execution Status",
+        "👁️ E. Physical Image Evidence",
+        "⚖️ F. Researcher Adjudication",
+    ])
+
+    # -------------------------------------------------------------------------
+    # SUBSECTION A: Consensus Entropy & Historical Uncertainty
+    # -------------------------------------------------------------------------
+    with im_tabs[0]:
+        st.markdown("#### A. Consensus Entropy & Historical Uncertainty")
+
+        # Mandatory Scientific Epigraphical Principle
+        st.warning(
+            "⚠️ **Scientific Epigraphical Principle on Consensus Entropy**:\n\n"
+            f"> *\"{report.scientific_principle}\"*\n\n"
+            "**Operational Epigraphical Rule:** Consensus entropy measures the dispersion of neural model agreement, "
+            "**NOT** the probability of historical veracity. Unanimous agreement does NOT eliminate correlated recognition errors "
+            "caused by shared preprocessing, image artifacts, or granite degradation. Physical inscription evidence and epigraphist "
+            "review remain essential. Unanimous readings must never be automatically accepted without scholarly inspection."
+        )
+
+        corr = report.correlated_dependencies
+        st.info(
+            f"🔗 **Pipeline Input Variant:** `{corr.shared_preprocessing}` | "
+            f"**Correlated Providers:** {', '.join(corr.correlated_providers) if corr.correlated_providers else 'Independent'}\n\n"
+            f"*{corr.epigraphical_warning}*"
+        )
+        if corr.potential_shared_failure_modes:
+            with st.expander("🔍 Inspect Potential Correlated Preprocessing Failure Modes", expanded=False):
+                for mode in corr.potential_shared_failure_modes:
+                    st.caption(f"• {mode}")
+
+        c1, c2, c3, c4 = st.columns(4)
+        ent_data = report.consensus_entropy_summary
+        with c1:
+            render_metric_card("Mean Entropy", f"{ent_data.get('mean_entropy_bits', 0.0):.3f} bits", "Dispersion across models")
+        with c2:
+            render_metric_card("Max Position Entropy", f"{ent_data.get('max_entropy_bits', 0.0):.3f} bits", "Peak uncertainty slot")
+        with c3:
+            render_metric_card("Unanimous Slots (H = 0)", str(ent_data.get("unanimous_slots", 0)), "Full inter-model agreement")
+        with c4:
+            render_metric_card("Disputed Slots (H > 0)", str(ent_data.get("disputed_slots", 0)), "Contested readings")
+
+        # Candidate Distribution Details
+        if bundle.consensus_report and bundle.consensus_report.position_entropy_details:
+            with st.expander("📋 Inspect Detailed Position-by-Position Candidate Distribution & Preserved Outputs", expanded=False):
+                dist_rows = []
+                for p in bundle.consensus_report.position_entropy_details:
+                    norm_e_str = f"{p.normalized_entropy:.3f}" if p.normalized_entropy is not None else "Not available (single candidate)"
+                    dist_rows.append({
+                        "Slot #": p.position_index + 1,
+                        "Raw Entropy (bits)": f"{p.entropy:.3f}",
+                        "Normalized Entropy": norm_e_str,
+                        "Severity": p.severity.upper(),
+                        "Dominant Reading": p.dominant_candidate or "—",
+                        "Distinct Candidates (K)": len(p.distinct_candidates),
+                        "Preserved Candidates": ", ".join(p.distinct_candidates) if p.distinct_candidates else "None",
+                        "Candidate Distribution P(c)": ", ".join([f"{k}: {v:.2f}" for k, v in p.candidate_distribution.items()]),
+                        "Participating Engines": p.participating_providers_count,
+                    })
+                st.dataframe(pd.DataFrame(dist_rows), width="stretch", hide_index=True)
+
+    # -------------------------------------------------------------------------
+    # SUBSECTION B: OCR Completeness & Region Truncation Diagnostics
+    # -------------------------------------------------------------------------
+    with im_tabs[1]:
+        st.markdown("#### B. OCR Completeness & Region Truncation Diagnostics")
+        st.caption(
+            "Monitors Sarvam Vision, PaddleOCR, and Historical OCR engines using strict 5-state classifications: "
+            "COMPLETE, PARTIAL_TRUNCATION, NOT_ASSESSABLE, PROVIDER_ERROR, EMPTY_OUTPUT."
+        )
+
+        trunc_rows = []
+        for d in report.truncation_diagnostics:
+            trunc_rows.append({
+                "Engine": d.provider_id,
+                "Diagnostic Status": d.truncation_status.value,
+                "Severity": d.severity.value,
+                "Characters": d.character_count,
+                "Tamil Graphemes": d.grapheme_count,
+                "Input Dimensions": f"{d.input_dimensions[0]} × {d.input_dimensions[1]} px" if d.input_dimensions else "Not available",
+                "Processed Dimensions": f"{d.processed_dimensions[0]} × {d.processed_dimensions[1]} px" if d.processed_dimensions else "Not available",
+                "Max Documented Limit": str(d.max_output_limit) if d.max_output_limit is not None else "Not documented by provider API",
+                "Truncation Evidence": d.truncation_evidence if d.truncation_evidence else "None observed",
+                "Diagnostic Reason": d.diagnostic_reason,
+            })
+
+        if trunc_rows:
+            st.dataframe(pd.DataFrame(trunc_rows), width="stretch", hide_index=True)
+
+        # Truncation Alerts
+        part_truncs = [d for d in report.truncation_diagnostics if d.truncation_status == TruncationStatus.PARTIAL_TRUNCATION]
+        if part_truncs:
+            st.markdown("##### ⚠️ Active Truncation Alerts:")
+            for pt in part_truncs:
+                st.error(
+                    f"**Engine `{pt.provider_id}`**: Status `{pt.truncation_status.value}` ({pt.severity.value})\n\n"
+                    f"**Evidence:** {pt.truncation_evidence}\n\n"
+                    f"**Reason:** {pt.diagnostic_reason}"
+                )
+
+    # -------------------------------------------------------------------------
+    # SUBSECTION C: Repeated-Grapheme Anomalies
+    # -------------------------------------------------------------------------
+    with im_tabs[2]:
+        st.markdown("#### C. Repeated-Grapheme Anomaly Monitoring")
+        st.caption(
+            "Detects unnatural repeated-grapheme looping (e.g. 'ட்ட்ட்ட்ட்ட' or 'ணணணண') caused by neural OCR "
+            "hallucinating on granite grain texture. Grapheme-cluster segmentation preserves Tamil vowels and pulli. "
+            "Normal Tamil linguistic gemination (count = 2) is preserved and never flagged."
+        )
+
+        anomalies = report.repeated_anomalies
+        if not anomalies:
+            st.success("✓ No unnatural repeated-grapheme looping anomalies detected. All observed repetitions conform to natural Tamil phonotactics.")
+        else:
+            st.warning(f"⚠️ Detected {len(anomalies)} repeated-grapheme looping anomaly warnings requiring epigraphist inspection.")
+            for idx, an in enumerate(anomalies):
+                with st.expander(f"⚠️ Anomaly #{idx + 1}: Engine `{an.provider_id}` — Grapheme '{an.repeated_grapheme}' repeated {an.repeat_count} times", expanded=True):
+                    a_c1, a_c2 = st.columns([2, 1])
+                    with a_c1:
+                        st.markdown(f"**Surrounding Context Snippet:** `{an.context_snippet}`")
+                        st.markdown(f"**Diagnostic Note:** {an.diagnostic_note}")
+                        st.caption(f"Character index span in raw text: [{an.start_char_idx} .. {an.end_char_idx}]")
+                    with a_c2:
+                        st.metric("Repetition Count", f"{an.repeat_count} × '{an.repeated_grapheme}'")
+                        st.caption(f"**Linked Inscription Region:** `{an.region_id or 'Not available'}`")
+                        st.caption(f"**Severity Level:** `{an.severity.value}`")
+                    st.caption("ℹ️ *Epigraphical Rule:* Anomalies are review warnings for manual inspection, NOT automatic modifications.")
+
+    # -------------------------------------------------------------------------
+    # SUBSECTION D: Provider Execution Status
+    # -------------------------------------------------------------------------
+    with im_tabs[3]:
+        st.markdown("#### D. Provider Execution Status & Manifest")
+        st.caption("Truthful display of individual recognition engine lifecycle states and latency.")
+
+        exec_rows = report.provider_execution_statuses
+        if exec_rows:
+            st.dataframe(pd.DataFrame(exec_rows), width="stretch", hide_index=True)
+
+    # -------------------------------------------------------------------------
+    # SUBSECTION E: Physical Image Evidence Verification
+    # -------------------------------------------------------------------------
+    with im_tabs[4]:
+        st.markdown("#### E. Physical Image Evidence Verification")
+        st.caption(
+            "Allows epigraphists to cross-inspect physical stone photographs, enhanced surface layers, "
+            "and edge relief maps to distinguish authentic chisel grooves from filter artifacts."
+        )
+
+        pe1, pe2, pe3 = st.columns(3)
+        with pe1:
+            st.markdown("**1. Original Photograph (Master)**")
+            if hasattr(st.session_state, "current_image") and st.session_state.current_image:
+                st.image(st.session_state.current_image, width="stretch")
+            else:
+                st.info("Original photograph not loaded.")
+        with pe2:
+            st.markdown("**2. Restored Surface (Mild CLAHE)**")
+            if restoration_results and restoration_results.get("clahe"):
+                st.image(restoration_results["clahe"], width="stretch")
+            elif hasattr(st.session_state, "restoration_results") and st.session_state.restoration_results and st.session_state.restoration_results.get("clahe"):
+                st.image(st.session_state.restoration_results["clahe"], width="stretch")
+            else:
+                st.image(ocr_target, width="stretch")
+        with pe3:
+            st.markdown("**3. High-Pass Filter / Edge Relief**")
+            if restoration_results and restoration_results.get("edge_relief"):
+                st.image(restoration_results["edge_relief"], width="stretch")
+            elif hasattr(st.session_state, "restoration_results") and st.session_state.restoration_results and st.session_state.restoration_results.get("edge_relief"):
+                st.image(st.session_state.restoration_results["edge_relief"], width="stretch")
+            elif restoration_results and restoration_results.get("squeeze"):
+                st.image(restoration_results["squeeze"], width="stretch")
+            else:
+                st.info("Edge relief layer not generated.")
+
+        st.caption(f"🛡️ **Physical Evidence Safeguard:** {report.physical_evidence_safeguard}")
+
+    # -------------------------------------------------------------------------
+    # SUBSECTION F: Researcher Adjudication Status & Non-Overwriting Guarantee
+    # -------------------------------------------------------------------------
+    with im_tabs[5]:
+        st.markdown("#### F. Researcher Adjudication Status & Non-Overwriting Guarantee")
+        st.caption(
+            "Epigraphist review tracking, scholarly notes, physical evidence recording, "
+            "and cryptographic lock ensuring AI predictions never silently overwrite researcher-approved readings."
+        )
+
+        st.info("🛡️ **Non-Overwriting Principle:** AI predictions must never silently overwrite researcher-approved readings. Approved transcripts are cryptographically locked.")
+
+        adj_data = report.researcher_adjudication_summary
+        a1, a2, a3 = st.columns(3)
+        with a1:
+            render_metric_card("Total Regions", str(adj_data.get("total_adjudication_items", 0)), "Evaluated character slots")
+        with a2:
+            render_metric_card("Researcher Approved", str(adj_data.get("approved_readings_count", 0)), "Human verified readings")
+        with a3:
+            render_metric_card("Pending Review", str(adj_data.get("pending_review_count", 0)), "Awaiting scholar adjudication")
+
+        # Table of approved items
+        approved_items = [
+            it for it in getattr(bundle, "adjudication_items", [])
+            if it.is_researcher_approved or it.current_decision != AdjudicationDecision.PENDING.value
+        ]
+        if approved_items:
+            st.markdown("##### 📜 Researcher-Approved Inscription Readings:")
+            appr_rows = []
+            for it in approved_items:
+                last_rev = it.revision_history[-1] if it.revision_history else None
+                appr_rows.append({
+                    "Region": f"Slot #{it.region_index + 1} ({it.item_id})",
+                    "Approved Reading": it.approved_text or it.fused_candidate,
+                    "Decision Status": it.current_decision.upper(),
+                    "Reviewer Attribution": last_rev.reviewer_identity if last_rev else "Epigraphist",
+                    "Rationale / Scholarly Notes": last_rev.rationale if last_rev else "Accepted",
+                    "Revision Count": len(it.revision_history),
+                })
+            st.dataframe(pd.DataFrame(appr_rows), width="stretch", hide_index=True)
 
 
 def render_kiefe_dashboard(
@@ -151,6 +576,10 @@ def render_kiefe_dashboard(
             str(len(bundle.historical_validation.supporting_matches)),
             f"Rulers: {bundle.historical_validation.total_rulers_detected} | Dyn: {bundle.historical_validation.total_dynasties_detected}"
         )
+
+    # Core Scientific Epigraphical Evidence & Integrity Monitor Section
+    with st.expander("🛡️ Epigraphical Evidence & Integrity Monitor", expanded=True):
+        render_epigraphical_evidence_integrity_monitor(bundle, provider_manager, ocr_target)
 
     # 9 Specialized Tabs
     tab_titles = [
@@ -391,7 +820,7 @@ def render_kiefe_dashboard(
 
         st.markdown("##### Disagreement Severity Categorization:")
         s_dist = crep.severity_distribution
-        s1, s2, s3, s4 = st.columns(4)
+        s1, s2, s3, s4, s5 = st.columns(5)
         with s1:
             st.metric("🟩 Unanimous (H = 0.0)", s_dist.get(DisagreementSeverity.UNANIMOUS, 0))
         with s2:
@@ -400,19 +829,25 @@ def render_kiefe_dashboard(
             st.metric("🟨 Divided (0.5 < H ≤ 1.0)", s_dist.get(DisagreementSeverity.DIVIDED, 0))
         with s4:
             st.metric("🟥 High Dispute (H > 1.0)", s_dist.get(DisagreementSeverity.HIGH_DISPUTE, 0))
+        with s5:
+            na_cnt = s_dist.get(DisagreementSeverity.NOT_ASSESSABLE, 0) + s_dist.get(DisagreementSeverity.SINGLE_PROVIDER, 0)
+            st.metric("⬜ Not Assessable", na_cnt)
 
         # Position entropy details
         if crep.position_entropy_details:
             with st.expander("📋 Detailed Position-by-Position Entropy Table", expanded=False):
                 ent_rows = []
                 for p in crep.position_entropy_details:
+                    norm_e_str = f"{p.normalized_entropy:.3f}" if getattr(p, "normalized_entropy", None) is not None else "N/A"
                     ent_rows.append({
                         "Slot #": p.position_index + 1,
                         "Entropy (bits)": f"{p.entropy:.3f}",
+                        "Normalized Entropy (H_norm)": norm_e_str,
                         "Severity": p.severity.upper(),
-                        "Dominant Candidate": p.dominant_candidate,
+                        "Assessable": "✓ YES" if getattr(p, "is_assessable", True) else "⚠️ NO",
+                        "Dominant Candidate": p.dominant_candidate or "—",
                         "Margin (P1 - P2)": f"{p.dominant_margin:.2f}",
-                        "Distinct Candidates": ", ".join(p.distinct_candidates),
+                        "Distinct Candidates": ", ".join(p.distinct_candidates) if p.distinct_candidates else "None",
                         "Providers": p.participating_providers_count,
                     })
                 st.dataframe(pd.DataFrame(ent_rows), width="stretch", hide_index=True)

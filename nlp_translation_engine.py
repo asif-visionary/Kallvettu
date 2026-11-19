@@ -13,14 +13,25 @@ from typing import Dict, List, Any, Optional
 # 1. EPIGRAPHICAL SCRIPTS, CHARACTER INVENTORIES & METADATA
 # ==============================================================================
 
+TRANSLATION_UNAVAILABLE_UNVERIFIED = "Translation unavailable: the underlying transcription requires epigraphical verification."
+TRANSLATION_UNAVAILABLE_TA = "மொழிபெயர்ப்பு கிடைக்கப்பெறவில்லை: அடிப்படையான கல்வெட்டுப் பதிவு கல்வெட்டியல் ஆய்வாளர் சரிபார்ப்பிற்கு உட்படுத்தப்பட வேண்டும்."
+
 EPIGRAPHICAL_SCRIPTS = {
     "tamil_brahmi": {
         "id": "tamil_brahmi",
         "name_ta": "தமிழ் பிராமி (தமிழி / தாமிழி)",
         "name_en": "Tamil-Brahmi (Damili)",
+        "script_family": "Brahmi (Southern Series)",
+        "script_variant": "Tamil-Brahmi / Damili",
+        "language": "Old Tamil (பழந்தமிழ்)",
+        "historical_period": "Early Sangam (c. 3rd Century BCE – 2nd Century CE)",
+        "dynasty": "UNDETERMINED (Requires explicit royal epigraph citation e.g. Early Pandya/Chera)",
+        "monarch": "UNDETERMINED (Requires explicit epigraphical name)",
+        "geographical_provenance": "Pandya & Chera Country (Tamil Nadu / Kerala Rock Shelters)",
+        "geological_medium": "Granite Caverns, Natural Rock Shelters, Pottery (கருப்பு-சிவப்பு மண்பாண்டங்கள்)",
+        "material_type": "Rock Shelter / Granite Cavern Chiseled Drip-line",
         "period_ta": "கி.மு. 3 ஆம் நூற்றாண்டு – கி.பி. 2 ஆம் நூற்றாண்டு (சங்க காலம்)",
         "period_en": "c. 3rd Century BCE – 2nd Century CE (Sangam Period)",
-        "geological_medium": "Granite Caverns, Natural Rock Shelters, Pottery (கருப்பு-சிவப்பு மண்பாண்டங்கள்)",
         "unicode_range": "U+11000 - U+1107F (Brahmi Unicode Block)",
         "vowels": ["𑀅 (அ)", "𑀆 (ஆ)", "𑀇 (இ)", "𑀈 (ஈ)", "𑀉 (உ)", "𑀊 (ஊ)", "𑀏 (எ/ஏ)", "𑀐 (ஐ)", "𑀑 (ஒ/ஓ)", "𑀒 (ஔ)"],
         "tamil_specific_consonants": [
@@ -31,47 +42,101 @@ EPIGRAPHICAL_SCRIPTS = {
         ],
         "pulli_system": "Early Stage (System I): Inherent 'a' without pulli; Later Stage (System II/III - Bhattiprolu): Diacritic pulli marker to denote pure consonants.",
         "distinctive_features": "Angular rectilinear chisel strokes, absence of top horizontal line (shirorekha), unpointed pure consonants in archaic phase, right-slanted vowel diacritics.",
-        "diagnostic_markers": ["பாளிய்", "கொடிபித", "இகுவன்", "நந்தாஸிரிய்", "கணிய்", "அறுத்த", "ஆதன்", "இளங்கோ"]
+        "diagnostic_markers": ["பாளிய்", "கொடிபித", "இகுவன்", "நந்தாஸிரிய்", "கணிய்", "அறுத்த", "ஆதன்", "இளங்கோ"],
+        "supporting_evidence": "Attested Tamil-Brahmi diagnostic markers or Brahmi Unicode range.",
+        "attributable_source": "I. Mahadevan, Early Tamil Epigraphy (2003)."
     },
     "vatteluttu": {
         "id": "vatteluttu",
         "name_ta": "வட்டெழுத்து (Vatteluttu)",
         "name_en": "Classical Vatteluttu Script",
+        "script_family": "Southern Dravidian Cursive",
+        "script_variant": "Classical Vatteluttu",
+        "language": "Post-Sangam to Medieval Tamil (இடைக்காலத் தமிழ்)",
+        "historical_period": "Post-Sangam to Medieval Era (c. 4th Century CE – 11th Century CE)",
+        "dynasty": "UNDETERMINED (Attested across Pandya, Chera, and Ay kingdoms)",
+        "monarch": "UNDETERMINED (Requires explicit regnal citation)",
+        "geographical_provenance": "Southern Tamil Nadu & Kerala (Pandya/Chera Territories)",
+        "geological_medium": "Hero Stones (நடுகல்), Cave Bed Inscriptions, Copper Plates (செப்பேடுகள்)",
+        "material_type": "Granite Hero Stone (நடுகல்) / Cave Bed",
         "period_ta": "கி.பி. 4 ஆம் நூற்றாண்டு – கி.பி. 11 ஆம் நூற்றாண்டு (களப்பிரர், பல்லவர், பாண்டியர், சேரர் காலம்)",
         "period_en": "c. 4th Century CE – 11th Century CE (Post-Sangam to Medieval Era)",
-        "geological_medium": "Hero Stones (நடுகல்), Cave Bed Inscriptions, Copper Plates (செப்பேடுகள்)",
         "unicode_range": "Transitional Cursive Dravidian Epigraphical Series",
         "vowels": ["அ", "ஆ", "இ", "ஈ", "உ", "ஊ", "எ", "ஏ", "ஐ", "ஒ", "ஓ"],
         "distinctive_features": "Continuous rounded cursive glyphs ('Vatta' = Circular) adapted for incising on dried palm leaves with an iron stylus; curved loops for 'ka', 'ta', 'ya', and 'ra'.",
         "pulli_system": "Sporadic dot or vertical bar pulli; medial vowels curled around the consonant base.",
-        "diagnostic_markers": ["தொறு", "நடுகல்", "பட்டான்", "கூற்றற்கு", "பூசல்", "நின்றெறிந்து", "சேந்தன்"]
+        "diagnostic_markers": ["தொறு", "நடுகல்", "பட்டான்", "கூற்றற்கு", "பூசல்", "நின்றெறிந்து", "சேந்தன்"],
+        "supporting_evidence": "Hero-stone martial formula (தொறுப்பூசல், நடுகல், பட்டான்) or cursive Vatteluttu orthography.",
+        "attributable_source": "R. Nagaswamy, Hero Stones of Tamil Nadu (1974) & ARE reports."
     },
     "grantha": {
         "id": "grantha",
         "name_ta": "பல்லவர் / சோழர் கிரந்தம் (Grantha)",
         "name_en": "Pallava / Chola Grantha Script",
+        "script_family": "Southern Brahmic Grantha",
+        "script_variant": "Pallava / Chola Grantha",
+        "language": "Sanskrit / Bilingual Epigraphical Sanskrit",
+        "historical_period": "Early to Medieval (c. 6th Century CE – 14th Century CE)",
+        "dynasty": "UNDETERMINED (Attested across Pallava, Chola, and Pandya royal charters)",
+        "monarch": "UNDETERMINED (Requires explicit prasasti citation)",
+        "geographical_provenance": "Tondaimandalam & Cholamandalam (Kanchipuram / Thanjavur / Kumbakonam)",
+        "geological_medium": "Granite Temple Basements, Copper Plate Praśastis, Monolithic Rock Cut Caves",
+        "material_type": "Granite Temple Adhisthana / Copper Plates",
         "period_ta": "கி.பி. 6 ஆம் நூற்றாண்டு – கி.பி. 14 ஆம் நூற்றாண்டு",
         "period_en": "c. 6th Century CE – 14th Century CE",
-        "geological_medium": "Granite Temple Basements, Copper Plate Praśastis, Monolithic Rock Cut Caves",
         "unicode_range": "U+11300 - U+1137F (Grantha Unicode Block)",
         "distinctive_characters": [
             "𑌶 (ஶ - Śa)", "𑌷 (ஷ - Ṣa)", "𑌸 (ஸ - Sa)", "𑌹 (ஹ - Ha)", "𑌕𑍍𑌷 (க்ஷ - Kṣa)", "𑌶𑍍𑌰𑍀 (ஸ்ரீ - Śrī)", "𑍐 (ஓம் - Om)"
         ],
         "distinctive_features": "Elaborate multi-tier consonant conjunct ligatures (saṃyuktākṣara); developed to record Sanskrit mantras, invocations, and royal genealogies interspersed in Tamil inscriptions.",
         "pulli_system": "Explicit virama diacritic (𑍍) suppressing inherent vowel.",
-        "diagnostic_markers": ["ஸ்ரீ", "ஸ்வஸ்தி", "பிரசஸ்தி", "தேவர்", "பிரம்மதேயம்", "சாசனம்"]
+        "diagnostic_markers": ["ஸ்ரீ", "ஸ்வஸ்தி", "பிரசஸ்தி", "தேவர்", "பிரம்மதேயம்", "சாசனம்"],
+        "supporting_evidence": "Grantha Unicode block or Sanskrit invocatory formula (ஸ்வஸ்தி ஸ்ரீ, பிரசஸ்தி).",
+        "attributable_source": "South Indian Inscriptions (SII) & C. Minakshi (1938)."
     },
     "medieval_chola": {
         "id": "medieval_chola",
         "name_ta": "இடைக்காலச் சோழர் கல்வெட்டுத் தமிழ்",
         "name_en": "Medieval Chola Epigraphical Tamil Script",
+        "script_family": "Classical Tamil Script",
+        "script_variant": "Medieval Chola Epigraphical Tamil",
+        "language": "Middle Tamil (இடைக்காலத் தமிழ்)",
+        "historical_period": "Imperial Chola Era (c. 9th Century CE – 13th Century CE)",
+        "dynasty": "Chola Dynasty (Attributed only when royal preambles or titles are attested)",
+        "monarch": "UNDETERMINED (Unless specified in meykīrtti/formula)",
+        "geographical_provenance": "Cholamandalam (Thanjavur, Tiruchirappalli, Nagapattinam)",
+        "geological_medium": "Brihadisvara Temple Granite Walls, Adhisthana Basements, Pillar Capitals",
+        "material_type": "Dressed Granite Temple Wall / Adhisthana",
         "period_ta": "கி.பி. 9 ஆம் நூற்றாண்டு – கி.பி. 13 ஆம் நூற்றாண்டு (விஜயாலய சோழர் முதல் பிற்காலச் சோழர் வரை)",
         "period_en": "c. 9th Century CE – 13th Century CE (Imperial Chola Era)",
-        "geological_medium": "Brihadisvara Temple Granite Walls, Adhisthana Basements, Pillar Capitals",
         "unicode_range": "U+0B80 - U+0BFF (Standard Tamil Unicode Block with Archaic Allographs)",
         "distinctive_features": "Standardized rectangular geometry, horizontal headstrokes, distinctive archaic allographs for ண, ன, ர, ழ, non-split kombu ligatures, royal Meykkīrtti preambles.",
         "pulli_system": "Orthographic pulli widely present on consonants; frequent omission in fast stone incising.",
-        "diagnostic_markers": ["உடையார்", "அருள்மொழி", "இராசராச", "கற்றளி", "குடவோலை", "வாரியம்", "இறையிலி", "திருநந்தாவிளக்கு"]
+        "diagnostic_markers": ["உடையார்", "அருள்மொழி", "இராசராச", "கற்றளி", "குடவோலை", "வாரியம்", "இறையிலி", "திருநந்தாவிளக்கு"],
+        "supporting_evidence": "Attested Chola administrative formula or royal titles (உடையார், குடவோலை, கற்றளி).",
+        "attributable_source": "K.A. Nilakanta Sastri, The Colas (1935) & SII Vol. II."
+    },
+    "undetermined": {
+        "id": "undetermined",
+        "name_ta": "வரையறுக்கப்படாத எழுத்து முறை",
+        "name_en": "Undetermined / Unknown Script",
+        "script_family": "UNDETERMINED",
+        "script_variant": "UNDETERMINED",
+        "language": "UNDETERMINED",
+        "historical_period": "UNDETERMINED (Requires Epigraphist Verification)",
+        "dynasty": "UNDETERMINED",
+        "monarch": "UNDETERMINED",
+        "geographical_provenance": "UNDETERMINED",
+        "geological_medium": "UNDETERMINED",
+        "material_type": "UNDETERMINED",
+        "period_ta": "வரையறுக்கப்படாத காலம்",
+        "period_en": "UNDETERMINED (Requires Epigraphist Verification)",
+        "unicode_range": "UNDETERMINED",
+        "pulli_system": "UNDETERMINED",
+        "distinctive_features": "Insufficient diagnostic palaeographical or textual evidence to establish script variant or period.",
+        "diagnostic_markers": [],
+        "supporting_evidence": "Insufficient diagnostic evidence to attribute script variant; requires epigraphist review.",
+        "attributable_source": "Kallvettu Palaeographical Classification Engine"
     }
 }
 
@@ -111,6 +176,22 @@ EPIGRAPHY_LEXICON = {
         "modern_tamil": "வீரக்கல் (வீர மரணம் அடைந்தோர்க்கு எடுக்கப்பட்ட கல்)",
         "english": "Hero Stone / Memorial Stone",
         "etymology": "போரில் ஊரையும் கால்நடைகளையும் காத்து வீரமரணம் எய்திய வீரனின் நினைவாக நடப்படும் வழிபாட்டுக் கல்."
+    },
+    "அறையன்": {
+        "root": "அறை",
+        "pos": "பெயர்ச்சொல் (Noun / Epigraphical Title)",
+        "case_marker": "வேற்றுமை உருபற்ற எழுவாய் (Nominative)",
+        "modern_tamil": "அரசன் / தலைவன் / சிற்றரசன் (பழங்காலப் பட்டப்பெயர்)",
+        "english": "King / Chieftain / Ruler title",
+        "etymology": "மாங்குளம் கல்வெட்டில் 'அறைய்' என்று குறிக்கப்படும் சங்ககாலப் பட்டப்பெயர் (அரையன் / அறையன்)."
+    },
+    "பள்ளி": {
+        "root": "பள்ளி",
+        "pos": "பெயர்ச்சொல் (Noun)",
+        "case_marker": "வேற்றுமை உருபற்ற எழுவாய் (Nominative)",
+        "modern_tamil": "சமண/பௌத்த துறவியர் படுக்கை அல்லது உறைவிடம்",
+        "english": "Monastery / Ascetic retreat or rock-cut bed",
+        "etymology": "சங்ககாலத்தில் சமண முனிவர்களின் குகைப் படுக்கையைக் குறிக்கும் சொல்."
     },
     "பள்ளிச்சந்தம்": {
         "root": "பள்ளி + சந்தம்",
@@ -577,6 +658,132 @@ class EpigraphicalSandhiSplitter:
         return re.sub(r"\s+", " ", result).strip()
 
     @classmethod
+    def segment_words(cls, text: str, researcher_approved: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Performs authenticated epigraphical word segmentation.
+        Distinguishes:
+        - Researcher-approved segmentation (verified).
+        - Proposed linguistic segmentation (unverified).
+        - Raw unsegmented sequences (flagged as unsegmented).
+        """
+        if not text or not isinstance(text, str):
+            return {
+                "original_text": "",
+                "segmented_text": "",
+                "tokens": [],
+                "boundaries": [],
+                "segmentation_type": "empty_input",
+                "approval_status": "NOT_ASSESSABLE",
+                "is_segmented": False,
+                "uncertain_boundaries_count": 0,
+                "notes": "Empty text provided."
+            }
+
+        clean = text.strip()
+
+        is_approved = False
+        approved_tokens = []
+        if isinstance(researcher_approved, bool):
+            is_approved = researcher_approved
+            if is_approved:
+                approved_tokens = [t.strip() for t in clean.split() if t.strip()]
+        elif isinstance(researcher_approved, str) and researcher_approved.strip():
+            is_approved = True
+            approved_tokens = [t.strip() for t in researcher_approved.strip().split() if t.strip()]
+
+        if is_approved and approved_tokens:
+            boundaries = []
+            for i in range(len(approved_tokens) - 1):
+                boundaries.append({
+                    "boundary_index": i,
+                    "left_token": approved_tokens[i],
+                    "right_token": approved_tokens[i+1],
+                    "boundary_type": "researcher_verified_boundary",
+                    "is_verified": True,
+                    "confidence": 1.0,
+                })
+            return {
+                "original_text": clean,
+                "segmented_text": " ".join(approved_tokens),
+                "tokens": approved_tokens,
+                "boundaries": boundaries,
+                "segmentation_type": "researcher_approved",
+                "approval_status": "APPROVED",
+                "verification_status": "APPROVED",
+                "is_segmented": len(approved_tokens) > 1,
+                "uncertain_boundaries_count": 0,
+                "notes": "Researcher-verified epigraphical word segmentation."
+            }
+
+        # Automated proposal
+        split_result = cls.split_sandhi(clean)
+        tokens = [t.strip() for t in split_result.split() if t.strip()]
+
+        raw_tokens = [t.strip() for t in clean.split() if t.strip()]
+        actual_splits_occurred = (split_result.replace(" ", "") == clean.replace(" ", "")) and (len(tokens) > len(raw_tokens))
+
+        if actual_splits_occurred:
+            boundaries = []
+            for i in range(len(tokens) - 1):
+                boundaries.append({
+                    "boundary_index": i,
+                    "left_token": tokens[i],
+                    "right_token": tokens[i+1],
+                    "boundary_type": "proposed_sandhi_split",
+                    "is_verified": False,
+                    "confidence": 0.65,
+                })
+            return {
+                "original_text": clean,
+                "segmented_text": " ".join(tokens),
+                "tokens": tokens,
+                "boundaries": boundaries,
+                "segmentation_type": "proposed_linguistic",
+                "approval_status": "UNVERIFIED",
+                "verification_status": "UNVERIFIED",
+                "is_segmented": True,
+                "uncertain_boundaries_count": len(boundaries),
+                "notes": "Automatically proposed linguistic Sandhi segmentation (Unverified proposal requiring researcher review)."
+            }
+
+        if len(raw_tokens) > 1:
+            boundaries = []
+            for i in range(len(raw_tokens) - 1):
+                boundaries.append({
+                    "boundary_index": i,
+                    "left_token": raw_tokens[i],
+                    "right_token": raw_tokens[i+1],
+                    "boundary_type": "raw_whitespace_boundary",
+                    "is_verified": False,
+                    "confidence": 0.50,
+                })
+            return {
+                "original_text": clean,
+                "segmented_text": " ".join(raw_tokens),
+                "tokens": raw_tokens,
+                "boundaries": boundaries,
+                "segmentation_type": "raw_whitespace_tokens",
+                "approval_status": "PROVISIONAL",
+                "verification_status": "PROVISIONAL",
+                "is_segmented": True,
+                "uncertain_boundaries_count": len(boundaries),
+                "notes": "Whitespace-separated raw tokens (Palaeographical Sandhi decomposition unapplied)."
+            }
+
+        return {
+            "original_text": clean,
+            "segmented_text": clean,
+            "tokens": [clean] if clean else [],
+            "boundaries": [],
+            "segmentation_type": "unsegmented_raw",
+            "approval_status": "UNVERIFIED",
+            "verification_status": "UNVERIFIED",
+            "is_segmented": False,
+            "uncertain_boundaries_count": 0,
+            "notes": "No valid epigraphical word boundaries detected; unsegmented OCR string preserved."
+        }
+
+    @classmethod
     def extract_case_suffix(cls, word: str) -> Dict[str, str]:
         """Extracts archaic grammatical case suffixes from an inflected word."""
         clean = word.strip()
@@ -628,72 +835,114 @@ class EpigraphicalMorphologicalAnalyzer:
 
     @classmethod
     def analyze_word(cls, word: str) -> Dict[str, Any]:
-        """Analyzes a single word token for epigraphical morphology."""
+        """
+        Analyzes a single word token for epigraphical morphology with anti-hallucination safeguards.
+        Only classifies attested lexical candidates; never invents roots or parts of speech.
+        """
         clean_w = re.sub(r"[\s\-_,.:;!?\[\]\(\)]+", "", word.strip())
         if not clean_w:
             return {}
 
-        # 1. Exact match in historical lexicon
+        # 1. Exact match in historical epigraphical lexicon
         if clean_w in EPIGRAPHY_LEXICON:
             info = EPIGRAPHY_LEXICON[clean_w]
             return {
                 "word": clean_w,
+                "input_word": clean_w,
                 "normalized": clean_w,
                 "root": info["root"],
+                "proposed_root": info["root"],
                 "pos": info["pos"],
                 "case_marker": info["case_marker"],
+                "morphological_segmentation": info.get("root", clean_w),
+                "grammatical_explanation": info.get("etymology", "Verified classical epigraphical term"),
+                "dictionary_source": "Kallvettu Epigraphical Lexicon / Tamil Lexicon (Madras)",
+                "evidence": f"Attested classical term: {clean_w}",
+                "confidence_provenance": "LEXICON_VERIFIED",
+                "review_status": "APPROVED",
+                "is_recognized": True,
                 "modern": info["modern_tamil"],
+                "meaning_ta": info["modern_tamil"],
                 "english": info["english"],
+                "meaning_en": info["english"],
                 "notes": info["etymology"]
             }
 
-        # 2. Check if it is a known honorific/royal title
+        # 2. Check if it is a known royal / honorific title
         if clean_w in cls.HONORIFIC_TITLES:
+            root_val = "உடையார் / உடை" if clean_w == "உடையார்" else clean_w
             return {
                 "word": clean_w,
+                "input_word": clean_w,
                 "normalized": clean_w,
-                "root": clean_w,
+                "root": root_val,
+                "proposed_root": root_val,
                 "pos": "அரச பட்டப்பெயர் / மதிப்பியல் (Royal Title)",
                 "case_marker": "வேற்றுமை உருபற்ற எழுவாய் (Nominative)",
+                "morphological_segmentation": clean_w,
+                "grammatical_explanation": cls.HONORIFIC_TITLES[clean_w],
+                "dictionary_source": "South Indian Inscriptions / Epigraphia Indica Glossaries",
+                "evidence": f"Attested royal title: {clean_w}",
+                "confidence_provenance": "EPIGRAPHICAL_TITLE_ATTESTED",
+                "review_status": "APPROVED",
+                "is_recognized": True,
                 "modern": cls.HONORIFIC_TITLES[clean_w],
+                "meaning_ta": cls.HONORIFIC_TITLES[clean_w],
                 "english": f"Royal/Honorific title: {clean_w}",
+                "meaning_en": f"Royal/Honorific title: {clean_w}",
                 "notes": "கல்வெட்டுகளில் அரச மரபினரையும் முனிவர்களையும் குறிக்கும் மரபுத்தொடர்."
             }
 
-        # 3. Check for inflectional case suffix
+        # 3. Check for inflectional case suffix on an attested lexicon stem
         case_info = EpigraphicalSandhiSplitter.extract_case_suffix(clean_w)
         stem = case_info["stem"]
         if case_info["has_case"] and stem in EPIGRAPHY_LEXICON:
             base_info = EPIGRAPHY_LEXICON[stem]
             return {
                 "word": clean_w,
+                "input_word": clean_w,
                 "normalized": stem,
                 "root": base_info["root"],
+                "proposed_root": base_info["root"],
                 "pos": base_info["pos"],
                 "case_marker": case_info["suffix"],
+                "morphological_segmentation": f"{stem} + {case_info['suffix']}",
+                "grammatical_explanation": f"Inflected nominal form: {base_info['etymology']} with {case_info['suffix']}",
+                "dictionary_source": "Tolkappiyam Collatikaram / Madras Tamil Lexicon",
+                "evidence": f"Attested stem '{stem}' + regular case marker",
+                "confidence_provenance": "GRAMMATICAL_RULE_DERIVED",
+                "review_status": "PROVISIONAL",
+                "is_recognized": True,
                 "modern": f"{base_info['modern_tamil']} ({case_info['suffix']})",
+                "meaning_ta": f"{base_info['modern_tamil']} ({case_info['suffix']})",
                 "english": f"{base_info['english']} [{case_info['suffix']}]",
+                "meaning_en": f"{base_info['english']} [{case_info['suffix']}]",
                 "notes": f"வேற்றுமை உருபு பெற்ற சொல்: {base_info['etymology']}"
             }
 
-        # 4. Fallback generic morphological inference
-        pos = "பெயர்ச்சொல் (Noun / Epigraphical Term)"
-        if clean_w.endswith("ான்") or clean_w.endswith("ார்") or clean_w.endswith("ோர்"):
-            pos = "ஆண்பால் / பலர்பால் பெயர் (Personal / Participial Noun)"
-        elif clean_w.endswith("து") or clean_w.endswith("ன"):
-            pos = "ஒன்றன்பால் / பலவின்பால் வினை (Neuter Verb / Particle)"
-        elif clean_w.endswith("இத்து") or clean_w.endswith("ந்து"):
-            pos = "வினையெச்சம் (Adverbial Participle)"
-
+        # 4. Fallback for unrecognized lexical sequence (ANTI-HALLUCINATION SAFEGUARD)
+        # Never automatically classify arbitrary long OCR strings as nouns or nominative forms.
         return {
             "word": clean_w,
+            "input_word": clean_w,
             "normalized": clean_w,
-            "root": clean_w,
-            "pos": pos,
-            "case_marker": case_info["suffix"],
-            "modern": f"{clean_w} (ஆய்வுக்குரிய கல்வெட்டுச் சொல்)",
-            "english": f"Epigraphical lexical unit '{clean_w}'",
-            "notes": "இலக்கண மற்றும் தொல்லியல் ஒப்பாய்வுக்குரிய சொல் வடிவம்."
+            "root": "UNDETERMINED",
+            "proposed_root": "UNDETERMINED",
+            "pos": "Unrecognized lexical sequence — requires epigraphist review.",
+            "pos_category": "UNRECOGNIZED",
+            "case_marker": "UNDETERMINED",
+            "morphological_segmentation": "UNDETERMINED",
+            "grammatical_explanation": "Unrecognized lexical sequence — requires epigraphist review.",
+            "dictionary_source": "NONE",
+            "evidence": "No verified epigraphical dictionary attestation",
+            "confidence_provenance": "UNRECOGNIZED_UNVERIFIED",
+            "review_status": "REQUIRES_EPIGRAPHIST_REVIEW",
+            "is_recognized": False,
+            "modern": "Unrecognized lexical sequence — requires epigraphist review.",
+            "meaning_ta": "Unrecognized lexical sequence — requires epigraphist review.",
+            "english": "Unrecognized lexical sequence — requires epigraphist review.",
+            "meaning_en": "Unrecognized lexical sequence — requires epigraphist review.",
+            "notes": "Requires manual epigraphist lexical review and palaeographical verification."
         }
 
     @classmethod
@@ -1086,11 +1335,14 @@ def identify_script_from_text(text: str) -> Dict[str, Any]:
     """
     Identifies historical Tamil script based on palaeographical vocabulary markers,
     Unicode ranges, and morphological particles.
+    Returns 'undetermined' when evidence is insufficient; never assigns an arbitrary dynasty or era.
     """
     if not text or not isinstance(text, str):
-        return EPIGRAPHICAL_SCRIPTS["medieval_chola"]
+        return EPIGRAPHICAL_SCRIPTS["undetermined"]
 
     clean = text.strip()
+    if not clean:
+        return EPIGRAPHICAL_SCRIPTS["undetermined"]
 
     # 1. Brahmi Unicode range check (U+11000 - U+1107F) or diagnostic markers
     has_brahmi_unicode = any(0x11000 <= ord(c) <= 0x1107F for c in clean)
@@ -1107,16 +1359,16 @@ def identify_script_from_text(text: str) -> Dict[str, Any]:
 
     # 4. Grantha Unicode range check (U+11300 - U+1137F) or distinctive Sanskrit invocations
     has_grantha_unicode = any(0x11300 <= ord(c) <= 0x1137F for c in clean)
-    if has_grantha_unicode or any(m in clean for m in ["ஸ்வஸ்தி", "ஸ்ரீமத்", "பிரசஸ்தி", "க்ஷ", "ஸ"]):
+    if has_grantha_unicode or any(m in clean for m in EPIGRAPHICAL_SCRIPTS["grantha"]["diagnostic_markers"] + ["ஸ்வஸ்தி", "ஸ்ரீமத்", "பிரசஸ்தி", "க்ஷ", "ஸ"]):
         return EPIGRAPHICAL_SCRIPTS["grantha"]
 
-    # 5. Medieval Chola default
-    return EPIGRAPHICAL_SCRIPTS["medieval_chola"]
+    # 5. Insufficient diagnostic evidence -> Return UNDETERMINED (never default or guess)
+    return EPIGRAPHICAL_SCRIPTS["undetermined"]
 
 
 def extract_script_inventory(script_key: str) -> Dict[str, Any]:
     """Returns character inventory and features for a specified script."""
-    return EPIGRAPHICAL_SCRIPTS.get(script_key, EPIGRAPHICAL_SCRIPTS["medieval_chola"])
+    return EPIGRAPHICAL_SCRIPTS.get(script_key, EPIGRAPHICAL_SCRIPTS["undetermined"])
 
 
 # ==============================================================================
@@ -1409,25 +1661,95 @@ def analyze_custom_epigraph_text(
     input_text: str,
     script_hint: str = "auto",
     provenance: str = "Manual Epigraphical Transcription",
+    provenance_type: Optional[str] = None,
+    is_researcher_approved: bool = False,
+    allow_preliminary_translation: bool = False,
     allow_preset_match: bool = False,
-    source_identity: Optional[Any] = None
+    source_identity: Optional[Any] = None,
+    raw_ocr_by_provider: Optional[Dict[str, str]] = None,
+    **kwargs: Any,
 ) -> Dict[str, Any]:
     """
-    Comprehensive multi-tier NLP analysis for researcher-supplied ancient inscriptions.
-    Does NOT silently substitute catalog presets unless allow_preset_match is explicitly True.
+    Comprehensive multi-tier NLP analysis for epigraphical inscriptions with
+    strict anti-hallucination safeguards, separated provenance, and verifiable classifications.
     Generates:
-      - Tier 1: Diplomatic text (preserving [ ] and ( ))
-      - Tier 2: Normalized standardized Tamil Unicode
-      - Tier 3: Word-segmented text (Sandhi splitting)
-      - Tier 4: Modern vernacular Tamil translation
-      - Tier 5: Scholarly English translation
-      - Uncertain characters list
-      - Morphological and case analysis table
+      - Tier 1: Diplomatic text (preserving verbatim [ ], ( ), and unedited glyphs)
+      - Tier 2: Normalized standardized Tamil Unicode (with documented editorial operations)
+      - Tier 3: Word-segmented text (with verified boundary statuses)
+      - Tier 4: Modern vernacular Tamil translation (with safeguards against unverified claims)
+      - Tier 5: Scholarly English translation (with safeguards)
+      - Separated script, period, dynasty, monarch, and geographical provenance
+      - Morphological analysis with strict dictionary evidence and unrecognized sequence handling
     """
-    if not input_text or not input_text.strip():
-        input_text = "கண்டறியப்பட்ட கல்வெட்டுப் பதிவு"
-
-    clean_input = input_text.strip()
+    if provenance_type is None and "provenance_type" in kwargs:
+        provenance_type = kwargs["provenance_type"]
+    if source_identity is None and "source_identity" in kwargs:
+        source_identity = kwargs["source_identity"]
+    clean_input = input_text.strip() if input_text else ""
+    if not clean_input:
+        return {
+            "id": "custom_transcription",
+            "title_ta": "வெற்று கல்வெட்டுப் பதிவு",
+            "title_en": "Empty Epigraphical Record",
+            "dossier_status": "UNVERIFIED",
+            "provenance_type": provenance_type or "UNVERIFIED",
+            "era_ta": "வரையறுக்கப்படாத காலம்",
+            "era_en": "UNDETERMINED",
+            "script_ta": "வரையறுக்கப்படாத எழுத்து முறை",
+            "script_en": "Undetermined / Unknown Script",
+            "script_key": "undetermined",
+            "script_family": "UNDETERMINED",
+            "script_variant": "UNDETERMINED",
+            "language": "UNDETERMINED",
+            "historical_period": "UNDETERMINED",
+            "period_en": "UNDETERMINED",
+            "dynasty": "UNDETERMINED",
+            "dynasty_ta": "வரையறுக்கப்படாத அரசமரபு",
+            "dynasty_en": "UNDETERMINED",
+            "monarch": "UNDETERMINED",
+            "material_type": "Lithic Stone Surface",
+            "geographical_provenance": "UNVERIFIED_PROVENANCE",
+            "classification_evidence": "No text provided.",
+            "classification_source": "Kallvettu Palaeographical Classification Engine",
+            "location_ta": "சரிபார்க்கப்படாத தொல்லியல் களம்",
+            "location_en": "UNVERIFIED_PROVENANCE",
+            "category": "Epigraphical Research Record",
+            "weathered_text": "",
+            "restored_text": "",
+            "diplomatic_text": "",
+            "normalized_text": "",
+            "word_segmented_text": "",
+            "is_word_segmented": False,
+            "segmentation_status": "UNVERIFIED",
+            "segmentation_type": "unsegmented_raw",
+            "segmentation_details": {},
+            "normalization_status": "UNVERIFIED",
+            "normalization_operations": [],
+            "is_identical_to_diplomatic": True,
+            "modern_tamil_translation": TRANSLATION_UNAVAILABLE_TA,
+            "english_translation": TRANSLATION_UNAVAILABLE_UNVERIFIED,
+            "tamil_translation": TRANSLATION_UNAVAILABLE_TA,
+            "historical_context": "Historical commentary withheld: scholarly interpretation requires verified transcription and identified lexical units.",
+            "translation_status": "TRANSLATION_UNAVAILABLE_UNVERIFIED",
+            "is_translation_available": False,
+            "tamil_meaning": "வரலாற்று விளக்கம் நிறுத்திவைக்கப்பட்டுள்ளது.",
+            "english_meaning": "Historical commentary withheld.",
+            "words": [],
+            "morphological_analysis": [],
+            "recognized_words_count": 0,
+            "uncertain_characters": [],
+            "restoration_details": {"restored_text": "", "reconstructions": []},
+            "provenance": provenance,
+            "is_researcher_approved": False,
+            "data_source": "Empty Record",
+            "script_inventory": EPIGRAPHICAL_SCRIPTS["undetermined"],
+            "is_curated_preset": False,
+            "source_identity": getattr(source_identity, "to_dict", lambda: source_identity)() if source_identity else None,
+            "raw_ocr_by_provider": raw_ocr_by_provider or {},
+            "tier_1_diplomatic": "",
+            "tier_2_normalized": "",
+            "tier_3_segmented": "",
+        }
 
     # 1. Check catalog preset match ONLY if explicitly allowed
     if allow_preset_match:
@@ -1435,34 +1757,102 @@ def analyze_custom_epigraph_text(
         if matched:
             result = dict(matched)
             result["provenance"] = f"Identified Historical Preset: {matched['title_en']}"
+            result["provenance_type"] = "CURATED_CATALOG_PRESET"
+            result["dossier_status"] = "APPROVED"
             result["data_source"] = "Catalog Match"
             result["is_curated_preset"] = True
             if source_identity:
                 result["source_identity"] = getattr(source_identity, "to_dict", lambda: source_identity)()
             return result
 
-    # 2. Textual damage and conservative restoration
+    # 2. Determine Provenance Classification and Titles
+    if not provenance_type:
+        if is_researcher_approved or "Approved" in provenance:
+            provenance_type = "RESEARCHER_APPROVED"
+            is_researcher_approved = True
+        elif "Researcher" in provenance or "Manual" in provenance:
+            provenance_type = "RESEARCHER_TRANSCRIPTION"
+        elif "K-IEFE" in provenance or "Fused" in provenance:
+            provenance_type = "KIEFE_FUSED_CANDIDATE"
+        elif "Multi-Engine" in provenance or "Consensus" in provenance:
+            provenance_type = "MULTI_ENGINE_COMPARISON"
+        elif any(p in provenance for p in ["PaddleOCR", "Sarvam", "Offline"]):
+            provenance_type = "RAW_PROVIDER_OCR"
+        else:
+            provenance_type = "AI_GENERATED_SUGGESTION"
+
+    if provenance_type == "RESEARCHER_APPROVED":
+        title_en = "Researcher-Approved Epigraphical Dossier"
+        title_ta = "ஆய்வாளர் சரிபார்த்த கல்வெட்டுப் பதிவு"
+        dossier_status = "APPROVED"
+    elif provenance_type == "RESEARCHER_TRANSCRIPTION":
+        title_en = "Researcher Working Transcription Record"
+        title_ta = "ஆய்வாளர் படியெடுத்த உரை"
+        dossier_status = "RESEARCHER_REVIEWED"
+    elif provenance_type == "KIEFE_FUSED_CANDIDATE":
+        title_en = "K-IEFE Fused Epigraphical Candidate"
+        title_ta = "K-IEFE பல-இயந்திர ஒருங்கிணைப்பு உரை"
+        dossier_status = "PROVISIONAL"
+    elif provenance_type == "MULTI_ENGINE_COMPARISON":
+        title_en = "Multi-Engine OCR Candidate Comparison"
+        title_ta = "பல-இயந்திர ஒப்பாய்வுப் பதிவு"
+        dossier_status = "PROVISIONAL"
+    elif provenance_type == "RAW_PROVIDER_OCR":
+        title_en = f"Raw OCR Output ({provenance})"
+        title_ta = "கணினி வழி பிரித்தெடுக்கப்பட்ட மூல OCR உரை"
+        dossier_status = "UNVERIFIED"
+    else:
+        title_en = f"AI-Generated Inscription Suggestion ({provenance})"
+        title_ta = "செயற்கை நுண்ணறிவு முன்மொழிந்த உரை"
+        dossier_status = "UNVERIFIED"
+
+    # 3. Textual damage and editorial normalization
     restoration_res = perform_textual_restoration(clean_input)
     clean_text = restoration_res["restored_text"]
+    normalization_ops = [r for r in restoration_res.get("reconstructions", []) if r.get("status") == "resolved"]
+    is_identical_to_diplomatic = (clean_input.strip() == clean_text.strip())
 
-    # 3. Script identification
+    # 4. Script and Historical Classification (Separated Fields)
     if script_hint == "auto":
         script_data = identify_script_from_text(clean_input)
     else:
         script_data = EPIGRAPHICAL_SCRIPTS.get(script_hint, identify_script_from_text(clean_input))
 
-    detected_script_ta = script_data["name_ta"]
-    detected_script_en = script_data["name_en"]
-    era_ta = script_data["period_ta"]
-    era_en = script_data["period_en"]
+    is_script_determined = (script_data.get("id") != "undetermined")
+    detected_script_ta = script_data.get("name_ta", "வரையறுக்கப்படாத எழுத்து முறை")
+    detected_script_en = script_data.get("name_en", "Undetermined / Unknown Script")
 
-    # 4. Sandhi splitting for word segmentation (Tier 3)
-    segmented_text = EpigraphicalSandhiSplitter.split_sandhi(clean_text)
+    script_family = script_data.get("script_family", "UNDETERMINED")
+    script_variant = script_data.get("script_variant", "UNDETERMINED")
+    language = script_data.get("language", "UNDETERMINED")
+    historical_period = script_data.get("historical_period", "UNDETERMINED")
+    dynasty_en = script_data.get("dynasty", "UNDETERMINED")
+    dynasty_ta = script_data.get("dynasty_ta", "வரையறுக்கப்படாத அரசமரபு" if dynasty_en == "UNDETERMINED" else dynasty_en)
+    monarch = script_data.get("monarch", "UNDETERMINED")
+    geographical_provenance = script_data.get("geographical_provenance", "UNVERIFIED_PROVENANCE")
+    material_type = script_data.get("material_type", "UNDETERMINED")
+    classification_evidence = script_data.get("supporting_evidence", "Palaeographical markers & Unicode verification.")
+    classification_source = script_data.get("attributable_source", "Kallvettu Palaeographical Classification Engine")
 
-    # 5. Morphological & Lexical Analysis
+    era_ta = script_data.get("period_ta", "வரையறுக்கப்படாத காலம்")
+    era_en = script_data.get("period_en", "UNDETERMINED (Requires Epigraphist Verification)")
+
+    # 5. Word Segmentation (Tier 3)
+    segmentation_res = EpigraphicalSandhiSplitter.segment_words(
+        clean_text,
+        researcher_approved=clean_text if is_researcher_approved else None
+    )
+    segmented_text = segmentation_res["segmented_text"]
+    is_word_segmented = segmentation_res["is_segmented"]
+    segmentation_status = segmentation_res["approval_status"]
+    segmentation_type = segmentation_res["segmentation_type"]
+
+    # 6. Morphological & Lexical Analysis
     words = EpigraphicalMorphologicalAnalyzer.analyze_text(clean_text)
+    recognized_words = [w for w in words if w.get("is_recognized")]
+    recognized_terms = [w["word"] for w in recognized_words]
 
-    # 6. Extract damaged / uncertain characters
+    # 7. Extract Damaged / Uncertain Characters
     uncertain_chars = []
     damaged_matches = re.finditer(r"\[(.*?)\]", clean_input)
     for m in damaged_matches:
@@ -1475,58 +1865,91 @@ def analyze_custom_epigraph_text(
             "confidence": 0.50
         })
 
-    recognized_terms = [w["word"] for w in words if w.get("notes")]
+    # 8. Translation Safeguards (Anti-Hallucination)
+    # Block generation of scholarly translations when input transcription is unverified
+    is_translation_allowed = bool(is_researcher_approved or (allow_preliminary_translation and len(recognized_terms) >= 2))
 
-    # 7. Translations (Tiers 4 and 5)
-    if recognized_terms:
-        mod_tamil = f"இக்கல்வெட்டு வாசகம்: '{clean_text}' — இதில் இடம்பெற்றுள்ள '{', '.join(recognized_terms[:4])}' போன்ற சொற்கள், வரலாற்று ஆவணம், அறக்கொடை அல்லது வீர மரபை விவரிக்கின்றன."
-        english_trans = f"Transcribed epigraph: '{clean_text}' — Incorporating classical terms ({', '.join(recognized_terms[:4])}) relating to historic endowment, administrative record, or commemorative tradition."
+    if not is_translation_allowed:
+        mod_tamil = TRANSLATION_UNAVAILABLE_TA
+        english_trans = TRANSLATION_UNAVAILABLE_UNVERIFIED
+        translation_status = "TRANSLATION_UNAVAILABLE_UNVERIFIED"
+        tamil_meaning = "வரலாற்று விளக்கம் நிறுத்திவைக்கப்பட்டுள்ளது: சரிபார்க்கப்படாத எழுத்துருக்களின் அடிப்படையில் வரலாற்று முடிவுகள் அல்லது கொடை/அரசியல் விளக்கங்களை உருவாக்குவது தவிர்க்கப்பட்டுள்ளது."
+        english_meaning = "Historical and semantic interpretation withheld: authoritative historical deductions, endowment claims, or dynastic attributions cannot be made without verified transcription and peer-reviewed epigraphical evidence."
     else:
-        mod_tamil = f"படியெடுக்கப்பட்ட கல்வெட்டு வாசகம்: '{clean_text}'. இவ்வெழுத்துப் பதிவுக்கான விரிவான பொருள் அறிய அருகிலுள்ள எழுத்துகள் மற்றும் வரலாற்றுச் சூழல் ஆய்வுக்குரியது."
-        english_trans = f"Transcribed epigraph text: '{clean_text}'. Detailed translation requires palaeographical contextual analysis of adjacent inscriptions."
+        translation_status = "APPROVED" if is_researcher_approved else "PRELIMINARY_RESEARCHER_REQUESTED"
+        if recognized_terms:
+            mod_tamil = f"இக்கல்வெட்டு வாசகம்: '{clean_text}' — இதில் இடம்பெற்றுள்ள '{', '.join(recognized_terms[:4])}' போன்ற சொற்கள் ஆய்வு செய்யப்பட்டுள்ளன."
+            english_trans = f"Transcribed epigraph: '{clean_text}' — Incorporating classical terms: {', '.join(recognized_terms[:4])}."
+        else:
+            mod_tamil = f"படியெடுக்கப்பட்ட கல்வெட்டு வாசகம்: '{clean_text}'."
+            english_trans = f"Transcribed epigraph text: '{clean_text}'."
 
-    tamil_meaning = (
-        f"இக்கல்வெட்டு {detected_script_ta} வடிவில் அமைந்ததாகக் கணிக்கப்பட்டுள்ளது ({era_ta}). "
-        "பண்டைய தமிழகக் கல்வெட்டுகள் பாறை முகப்புகள், கற்றளிகள், மற்றும் நடுகற்களில் செதுக்கப்பட்ட சட்ட ஆவணங்களாகவும், "
-        "கொடைப் பதிவுகளாகவும் திகழ்கின்றன. இத்தொடரில் உள்ள சொற்கள் செம்மொழித் தமிழ் இலக்கண அமைப்பைப் பிரதிபலிக்கின்றன."
-    )
-
-    english_meaning = (
-        f"This inscription is classified under {detected_script_en} palaeographical conventions ({era_en}). "
-        "In South Indian epigraphical tradition, lithic inscriptions on temple basements, rock overhangs, and hero stones "
-        "served as irrevocable public records. The morphological particles reflect archaic classical Tamil syntax."
-    )
+        if is_script_determined:
+            tamil_meaning = f"இக்கல்வெட்டு {detected_script_ta} வடிவில் அமைந்ததாகக் கணிக்கப்பட்டுள்ளது ({era_ta})."
+            english_meaning = f"This inscription is classified under {detected_script_en} palaeographical conventions ({era_en})."
+        else:
+            tamil_meaning = "வரலாற்றுச் சூழல்: வரையறுக்கப்படாத கல்வெட்டு வடிவம்; மேலதிக தொல்லியல் களம் மற்றும் கல்வெட்டியல் ஆய்வுக்குரியது."
+            english_meaning = "Historical context: Epigraphical script undetermined; requires contextual analysis of adjacent rock carvings."
 
     return {
         "id": "custom_transcription",
-        "title_ta": "ஆய்வாளர் படியெடுத்த கல்வெட்டு உரை",
-        "title_en": "Researcher Transcribed Epigraph Record",
+        "title_ta": title_ta,
+        "title_en": title_en,
+        "dossier_status": dossier_status,
+        "provenance_type": provenance_type,
         "era_ta": era_ta,
         "era_en": era_en,
+        "period_en": era_en,
+        "script_key": script_data.get("id", "undetermined"),
         "script_ta": detected_script_ta,
         "script_en": detected_script_en,
-        "dynasty_ta": "பண்டைய தமிழக வரலாற்று எல்லை",
-        "dynasty_en": "Historical Tamil Chronological Horizon",
-        "location_ta": "தொல்லியல் களம் / நேரடிப் படி",
-        "location_en": "Field Site / Inscription Rubbing",
+        "script_family": script_family,
+        "script_variant": script_variant,
+        "language": language,
+        "historical_period": historical_period,
+        "dynasty": dynasty_en,
+        "dynasty_ta": dynasty_ta,
+        "dynasty_en": dynasty_en,
+        "monarch": monarch,
+        "material_type": material_type,
+        "geographical_provenance": geographical_provenance,
+        "classification_evidence": classification_evidence,
+        "classification_source": classification_source,
+        "location_ta": "சரிபார்க்கப்படாத தொல்லியல் களம்" if geographical_provenance == "UNVERIFIED_PROVENANCE" else geographical_provenance,
+        "location_en": geographical_provenance,
         "category": "Epigraphical Research Record (கல்வெட்டு ஆய்வுப் பதிவு)",
         "weathered_text": clean_input,
         "restored_text": clean_text,
         "diplomatic_text": clean_input,
         "normalized_text": clean_text,
         "word_segmented_text": segmented_text,
+        "is_word_segmented": is_word_segmented,
+        "segmentation_status": segmentation_status,
+        "segmentation_type": segmentation_type,
+        "segmentation_details": segmentation_res,
+        "normalization_status": "APPROVED" if is_researcher_approved else ("PROVISIONAL" if normalization_ops else "UNVERIFIED"),
+        "normalization_operations": normalization_ops,
+        "is_identical_to_diplomatic": is_identical_to_diplomatic,
+        "is_translation_available": is_translation_allowed,
         "modern_tamil_translation": mod_tamil,
+        "tamil_translation": mod_tamil,
         "english_translation": english_trans,
+        "translation_status": translation_status,
         "tamil_meaning": tamil_meaning,
         "english_meaning": english_meaning,
+        "historical_context": english_meaning,
         "words": words,
+        "morphological_analysis": words,
+        "recognized_words_count": len(recognized_words),
         "uncertain_characters": uncertain_chars,
         "restoration_details": restoration_res,
         "provenance": provenance,
-        "data_source": "Researcher Manual Input & Classical Lexicon",
+        "is_researcher_approved": is_researcher_approved,
+        "data_source": "Researcher Transcription" if is_researcher_approved else f"Kallvettu Pipeline ({provenance})",
         "script_inventory": script_data,
         "is_curated_preset": False,
         "source_identity": getattr(source_identity, "to_dict", lambda: source_identity)() if source_identity else None,
+        "raw_ocr_by_provider": raw_ocr_by_provider or {},
         "tier_1_diplomatic": clean_input,
         "tier_2_normalized": clean_text,
         "tier_3_segmented": segmented_text,

@@ -14,8 +14,10 @@ from __future__ import annotations
 import io
 import json
 import logging
+import os
 from typing import Dict, Any, List, Optional
-from fastapi import FastAPI, HTTPException, Query, Response, status
+from PIL import Image
+from fastapi import FastAPI, HTTPException, Query, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -31,7 +33,13 @@ from services.database.repository import EpigraphicalRepository
 from services.database.schemas import InscriptionRead, InscriptionSummary
 from services.epidoc.exporter import EpiDocExporter
 from services.epidoc.bundle import EpiDocArchiveBundler
-from services.iiif.manifest_builder import IIIFManifestBuilder
+from services.iiif.manifest_builder import (
+    IIIFManifestBuilder,
+    build_iiif_image_info,
+    resolve_image_asset,
+    DEFAULT_IIIF_BASE_URI,
+)
+from services.iiif.coordinate_mapper import parse_iiif_region
 from services.search.search_engine import EpigraphicalSearchEngine
 from services.knowledge_graph.graph_engine import EpigraphicalKnowledgeGraph
 
@@ -189,8 +197,8 @@ def export_epidoc(
 
 
 @app.get("/api/v1/inscriptions/{inscription_id}/manifest", tags=["IIIF"])
-def get_iiif_manifest(inscription_id: str):
-    """Generates IIIF Presentation 3.0 manifest for the inscription image."""
+def get_iiif_manifest(inscription_id: str, request: Request = None):
+    """Generates compliant IIIF Presentation 3.0 manifest with real dimensions and annotations."""
     with get_db_session() as s:
         insc = s.query(Inscription).filter(Inscription.id == inscription_id).first()
         if not insc:
@@ -199,19 +207,201 @@ def get_iiif_manifest(inscription_id: str):
                 detail=f"Inscription '{inscription_id}' not found.",
             )
 
-        manifest = IIIFManifestBuilder.build_manifest(
-            inscription_id=insc.id,
-            label=f"{insc.title_en} ({insc.title_ta})",
-            summary=insc.description or insc.title_en,
-            image_url=f"/api/v1/images/{insc.id}.jpg",
-            metadata_items=[
-                {"label": "Script", "value": insc.script_category},
-                {"label": "Dynasty", "value": insc.dynasty or "Unknown"},
-                {"label": "District", "value": insc.district or "Unknown"},
-                {"label": "Period", "value": insc.historical_period or "Unknown"},
-            ],
+        base_uri = (
+            str(request.base_url).rstrip("/") + "/api/v1/iiif"
+            if request is not None and getattr(request, "base_url", None) is not None
+            else DEFAULT_IIIF_BASE_URI
+        )
+        manifest = IIIFManifestBuilder.build_manifest_for_inscription(
+            inscription_or_id=insc,
+            base_uri=base_uri,
         )
         return JSONResponse(content=manifest, media_type="application/ld+json")
+
+
+@app.get("/api/v1/iiif/image/{asset_id}/info.json", tags=["IIIF"])
+def get_iiif_image_info(asset_id: str, request: Request = None):
+    """Returns compliant IIIF Image API 3.0 info.json descriptor."""
+    resolved = resolve_image_asset(asset_id)
+    if not resolved:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Image asset '{asset_id}' not found.",
+        )
+    base_uri = (
+        str(request.base_url).rstrip("/") + "/api/v1/iiif/image"
+        if request is not None and getattr(request, "base_url", None) is not None
+        else DEFAULT_IIIF_BASE_URI + "/image"
+    )
+    info = build_iiif_image_info(
+        image_id=asset_id,
+        width=resolved["width"],
+        height=resolved["height"],
+        base_uri=base_uri,
+    )
+    return JSONResponse(content=info, media_type="application/ld+json")
+
+
+@app.get(
+    "/api/v1/iiif/image/{asset_id}/{region}/{size}/{rotation}/{quality}.{format}",
+    tags=["IIIF"],
+)
+def get_iiif_image_region(
+    asset_id: str,
+    region: str,
+    size: str,
+    rotation: str,
+    quality: str,
+    format: str,
+):
+    """
+    IIIF Image API 3.0 Region extraction and transformation endpoint.
+    Spec: /image/{asset_id}/{region}/{size}/{rotation}/{quality}.{format}
+    """
+    resolved = resolve_image_asset(asset_id)
+    if not resolved or not os.path.exists(resolved["file_path"]):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Image asset '{asset_id}' not found.",
+        )
+
+    try:
+        with Image.open(resolved["file_path"]) as pil_img:
+            img = pil_img.copy().convert("RGB")
+            orig_w, orig_h = img.size
+
+            # 1. Region
+            rx, ry, rw, rh = parse_iiif_region(region, orig_w, orig_h)
+            cropped = img.crop((rx, ry, rx + rw, ry + rh))
+
+            # 2. Size
+            target_w, target_h = rw, rh
+            s = size.strip().lower()
+            if s in ("max", "full"):
+                pass
+            elif s.startswith("pct:"):
+                try:
+                    pct = float(s[4:]) / 100.0
+                    target_w = max(1, int(round(rw * pct)))
+                    target_h = max(1, int(round(rh * pct)))
+                    cropped = cropped.resize((target_w, target_h), Image.Resampling.BILINEAR)
+                except ValueError:
+                    pass
+            elif "," in s:
+                parts = s.split(",")
+                if len(parts) == 2:
+                    pw, ph = parts[0].strip(), parts[1].strip()
+                    if pw and not ph:  # w,
+                        target_w = max(1, int(pw))
+                        target_h = max(1, int(round(rh * (target_w / float(rw)))))
+                        cropped = cropped.resize((target_w, target_h), Image.Resampling.BILINEAR)
+                    elif ph and not pw:  # ,h
+                        target_h = max(1, int(ph))
+                        target_w = max(1, int(round(rw * (target_h / float(rh)))))
+                        cropped = cropped.resize((target_w, target_h), Image.Resampling.BILINEAR)
+                    elif pw and ph:  # w,h or !w,h
+                        is_fit = pw.startswith("!")
+                        clean_w = int(pw[1:] if is_fit else pw)
+                        clean_h = int(ph)
+                        if is_fit:
+                            cropped.thumbnail((clean_w, clean_h), Image.Resampling.BILINEAR)
+                        else:
+                            cropped = cropped.resize((clean_w, clean_h), Image.Resampling.BILINEAR)
+
+            # 3. Rotation
+            try:
+                rot_deg = float(rotation)
+                if rot_deg != 0:
+                    cropped = cropped.rotate(-rot_deg, expand=True)
+            except ValueError:
+                pass
+
+            # 4. Quality
+            q = quality.strip().lower()
+            if q == "gray":
+                cropped = cropped.convert("L")
+            elif q == "bitonal":
+                cropped = cropped.convert("L").point(lambda p: 255 if p > 128 else 0, "1")
+
+            # 5. Format
+            fmt_clean = format.strip().lower()
+            if fmt_clean in ("jpg", "jpeg"):
+                pil_format = "JPEG"
+                media_type = "image/jpeg"
+                save_img = cropped.convert("RGB") if cropped.mode not in ("RGB", "L") else cropped
+            elif fmt_clean == "png":
+                pil_format = "PNG"
+                media_type = "image/png"
+                save_img = cropped
+            elif fmt_clean == "webp":
+                pil_format = "WEBP"
+                media_type = "image/webp"
+                save_img = cropped.convert("RGB") if cropped.mode not in ("RGB", "RGBA") else cropped
+            else:
+                pil_format = "JPEG"
+                media_type = "image/jpeg"
+                save_img = cropped.convert("RGB")
+
+            buf = io.BytesIO()
+            save_img.save(buf, format=pil_format, quality=90)
+            return Response(content=buf.getvalue(), media_type=media_type)
+    except Exception as e:
+        logger.error("Failed to process IIIF image region: %s", e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Image processing error: {e}",
+        )
+
+
+@app.get("/api/v1/inscriptions/{inscription_id}/annotations", tags=["IIIF"])
+def get_inscription_annotations(inscription_id: str, request: Request = None):
+    """Returns W3C Web Annotation collection for glyph annotations of the inscription."""
+    with get_db_session() as s:
+        insc = s.query(Inscription).filter(Inscription.id == inscription_id).first()
+        if not insc:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Inscription '{inscription_id}' not found.",
+            )
+        base_uri = (
+            str(request.base_url).rstrip("/")
+            if request is not None and getattr(request, "base_url", None) is not None
+            else "https://kallvettu.org"
+        )
+        anns = EpigraphicalRepository.list_annotations_for_inscription(inscription_id)
+        items = []
+        for a in anns:
+            box = a.bounding_box or {}
+            bx = box.get("x", 0)
+            by = box.get("y", 0)
+            bw = box.get("w", 0)
+            bh = box.get("h", 0)
+            items.append({
+                "id": f"{base_uri}/api/v1/annotations/{a.id}",
+                "type": "Annotation",
+                "motivation": "tagging",
+                "body": {
+                    "type": "TextualBody",
+                    "value": a.character_label,
+                    "format": "text/plain",
+                    "language": "ta",
+                },
+                "target": f"{base_uri}/api/v1/iiif/manifest/{inscription_id}/canvas/{a.image_asset_id}#xywh=pixel:{bx},{by},{bw},{bh}",
+                "metadata": {
+                    "script_category": a.script_category,
+                    "diplomatic_reading": a.diplomatic_reading,
+                    "legibility_status": a.legibility_status,
+                    "review_status": a.review_status.value if hasattr(a.review_status, "value") else str(a.review_status),
+                },
+            })
+        return {
+            "@context": "http://www.w3.org/ns/anno.jsonld",
+            "id": f"{base_uri}/api/v1/inscriptions/{inscription_id}/annotations",
+            "type": "AnnotationCollection",
+            "label": f"Glyph Annotations for {insc.title_en}",
+            "total": len(items),
+            "items": items,
+        }
 
 
 @app.get("/api/v1/search", tags=["Search"])

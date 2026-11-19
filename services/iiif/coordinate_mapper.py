@@ -5,6 +5,7 @@ Guarantees:
 - Original master image coordinates are never conflated with downsampled/resized display coordinates.
 - Bidirectional scaling between original high-res matrix and preview/display viewports.
 - Standard IIIF region URI syntax parsing (pixel coordinates, percentages, square, full).
+- Standard IIIF region URL and deep-link generation.
 """
 
 from __future__ import annotations
@@ -129,3 +130,73 @@ def parse_iiif_region(
 
     return 0, 0, image_width, image_height
 
+
+def format_iiif_region(
+    x: int,
+    y: int,
+    w: int,
+    h: int,
+    pct: bool = False,
+    image_width: int = 0,
+    image_height: int = 0,
+) -> str:
+    """
+    Formats bounding box into standard IIIF region syntax.
+    - Pixel format: '{x},{y},{w},{h}'
+    - Percentage format: 'pct:{px},{py},{pw},{ph}'
+    """
+    if pct and image_width > 0 and image_height > 0:
+        px = max(0.0, min(100.0, (float(x) / float(image_width)) * 100.0))
+        py = max(0.0, min(100.0, (float(y) / float(image_height)) * 100.0))
+        pw = max(0.1, min(100.0 - px, (float(w) / float(image_width)) * 100.0))
+        ph = max(0.1, min(100.0 - py, (float(h) / float(image_height)) * 100.0))
+        return f"pct:{px:.1f},{py:.1f},{pw:.1f},{ph:.1f}"
+    return f"{int(round(x))},{int(round(y))},{int(round(w))},{int(round(h))}"
+
+
+def build_iiif_region_url(
+    base_uri: str,
+    asset_id: str,
+    x: int,
+    y: int,
+    w: int,
+    h: int,
+    pct: bool = False,
+    image_width: int = 0,
+    image_height: int = 0,
+    size: str = "max",
+    rotation: int = 0,
+    quality: str = "default",
+    format_ext: str = "jpg",
+) -> str:
+    """
+    Constructs an absolute, compliant IIIF Image API 3.0 Region extraction URL.
+    Spec: {scheme}://{server}{/prefix}/{identifier}/{region}/{size}/{rotation}/{quality}.{format}
+    """
+    region_str = format_iiif_region(
+        x=x, y=y, w=w, h=h, pct=pct, image_width=image_width, image_height=image_height
+    )
+    clean_base = base_uri.rstrip("/")
+    return f"{clean_base}/{asset_id}/{region_str}/{size}/{rotation}/{quality}.{format_ext}"
+
+
+def build_deep_link_url(
+    base_url: str,
+    inscription_id: str,
+    x: int,
+    y: int,
+    w: int,
+    h: int,
+    pct: bool = False,
+    image_width: int = 0,
+    image_height: int = 0,
+) -> str:
+    """
+    Constructs a persistent deep-link URL restoring the OpenSeadragon viewport
+    directly to the specified inscription and region.
+    """
+    region_str = format_iiif_region(
+        x=x, y=y, w=w, h=h, pct=pct, image_width=image_width, image_height=image_height
+    )
+    clean_base = base_url.rstrip("/")
+    return f"{clean_base}/?studio=iiif&inscription_id={inscription_id}&region={region_str}"

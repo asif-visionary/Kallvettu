@@ -385,6 +385,7 @@ class ClassicalTamilDictionary:
 
     def __init__(self, db_path: Optional[str] = None):
         self.db_path = os.path.abspath(db_path or DEFAULT_DB_PATH)
+        self._search_cache: Dict[Tuple[str, int], List[DictionarySearchResult]] = {}
         self.ensure_schema()
 
     @contextmanager
@@ -493,6 +494,7 @@ class ClassicalTamilDictionary:
                 entry.category,
             ))
             conn.commit()
+            self._search_cache.clear()
             return True
 
     def bulk_insert(self, entries: List[DictionaryEntry]) -> int:
@@ -531,6 +533,7 @@ class ClassicalTamilDictionary:
                 ))
                 inserted += 1
             conn.commit()
+            self._search_cache.clear()
         return inserted
 
     def lookup(self, term: str) -> Optional[DictionaryEntry]:
@@ -577,6 +580,10 @@ class ClassicalTamilDictionary:
             return []
 
         clean_q = query.strip()
+        cache_key = (clean_q, limit)
+        if cache_key in self._search_cache:
+            return self._search_cache[cache_key]
+
         norm_q = normalize_tamil_unicode(clean_q)
         results: List[DictionarySearchResult] = []
 
@@ -658,6 +665,9 @@ class ClassicalTamilDictionary:
 
         # Boost exact headword and prefix matches to the front
         results.sort(key=lambda x: (0 if x.headword == norm_q else (1 if x.headword.startswith(norm_q) else 2), x.relevance_rank))
+        if len(self._search_cache) >= 512:
+            self._search_cache.pop(next(iter(self._search_cache)))
+        self._search_cache[cache_key] = results
         return results
 
     def _enrich_morphological_analysis(

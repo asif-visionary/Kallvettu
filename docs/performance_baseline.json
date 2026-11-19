@@ -1,0 +1,119 @@
+{
+  "system": {
+    "os": "win32",
+    "python_version": "3.12.10",
+    "cpu_count": 22,
+    "initial_mem_mb": 18.16,
+    "final_mem_mb": 282.89,
+    "peak_mem_mb": 282.89
+  },
+  "benchmarks": {
+    "imports": {
+      "config": {
+        "latency_ms": 500.71,
+        "mem_delta_mb": 22.56
+      },
+      "restoration_engine": {
+        "latency_ms": 1307.81,
+        "mem_delta_mb": 26.17
+      },
+      "nlp_translation_engine": {
+        "latency_ms": 3.87,
+        "mem_delta_mb": 0.3
+      },
+      "multimodal_ai": {
+        "latency_ms": 331.84,
+        "mem_delta_mb": 5.93
+      },
+      "evaluation_engine": {
+        "latency_ms": 3.68,
+        "mem_delta_mb": 0.11
+      },
+      "services.database.connection": {
+        "latency_ms": 1252.64,
+        "mem_delta_mb": 26.91
+      },
+      "services.database.repository": {
+        "latency_ms": 0.17,
+        "mem_delta_mb": 0.01
+      },
+      "services.ai.common.provider_manager": {
+        "latency_ms": 69.47,
+        "mem_delta_mb": 0.4
+      },
+      "services.ocr_fusion": {
+        "latency_ms": 116.45,
+        "mem_delta_mb": 0.88
+      },
+      "services.geo_atlas.ui_atlas": {
+        "latency_ms": 7205.17,
+        "mem_delta_mb": 61.0
+      },
+      "services.knowledge_graph.graph_engine": {
+        "latency_ms": 1397.38,
+        "mem_delta_mb": 10.7
+      },
+      "services.knowledge_graph.graph_renderer": {
+        "latency_ms": 0.15,
+        "mem_delta_mb": 0.02
+      },
+      "services.iiif.manifest_builder": {
+        "latency_ms": 21.68,
+        "mem_delta_mb": 0.06
+      },
+      "services.iiif.viewer_component": {
+        "latency_ms": 0.18,
+        "mem_delta_mb": 0.0
+      },
+      "services.research_tools.rti_engine": {
+        "latency_ms": 29.96,
+        "mem_delta_mb": 0.12
+      },
+      "services.ui_studios": {
+        "latency_ms": 62.71,
+        "mem_delta_mb": 0.61
+      }
+    },
+    "database": {
+      "init_ms": 174.81,
+      "query_cold_ms": 13.54,
+      "query_warm_avg_ms": 1.85
+    },
+    "restoration": {
+      "image_dims": "1376x768",
+      "pipeline_cold_ms": 2810.35,
+      "pipeline_warm_ms": 2626.19,
+      "grayscale_ms": 3.17,
+      "clahe_ms": 132.91,
+      "sauvola_ms": 123.85,
+      "mem_delta_mb": 79.77
+    },
+    "dictionary": {
+      "init_ms": 8.46,
+      "search_cold_ms": 15.33,
+      "search_warm_avg_ms": 0.0
+    },
+    "knowledge_graph": {
+      "graph_build_ms": 1.12,
+      "serialization_flags_cold_ms": 240.15,
+      "serialization_flags_warm_ms": 0.83,
+      "html_render_ms": 8.35,
+      "html_bytes": 279962
+    },
+    "iiif": {
+      "manifest_ms": 15.58
+    },
+    "geographic_atlas": {
+      "geojson_load_ms": 9.39,
+      "feature_count": 37
+    },
+    "kiefe_fusion": {
+      "fusion_ms": 1236.86
+    },
+    "paddleocr": {
+      "provider_init_ms": 22.26,
+      "runtime_state": "AVAILABLE",
+      "status_label": "AVAILABLE \u2014 CPU"
+    }
+  }
+}

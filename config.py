@@ -16,6 +16,25 @@ except ImportError:
     pass
 
 # ==============================================================================
+# 0. CPU-FIRST THREAD GOVERNANCE (Prevents cache thrashing on multi-core systems)
+# ==============================================================================
+for _env_var in (
+    "OMP_NUM_THREADS",
+    "OPENBLAS_NUM_THREADS",
+    "MKL_NUM_THREADS",
+    "VECLIB_MAXIMUM_THREADS",
+    "NUMEXPR_NUM_THREADS",
+):
+    if _env_var not in os.environ:
+        os.environ[_env_var] = "4"
+
+try:
+    import cv2
+    cv2.setNumThreads(4)
+except Exception:
+    pass
+
+# ==============================================================================
 # 1. SECURITY UTILITIES
 # ==============================================================================
 

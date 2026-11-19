@@ -12,15 +12,31 @@ NumPy, SciPy, and Pillow:
 - Structured metadata retention for reproducible research
 """
 
+import os
+import re
 import io
 import time
+import hashlib
+import tempfile
+import logging
 from datetime import datetime
-from typing import Dict, Any, Tuple, Optional, Union
+from typing import Dict, Any, Tuple, Optional, Union, List
 import numpy as np
 import scipy.ndimage as ndi
 from PIL import Image, ImageOps, ImageFilter, ImageEnhance
 
+logger = logging.getLogger("kallvettu.restoration")
+
 ALGORITHM_VERSION = "2.1.0-cv-scientific"
+
+DEFAULT_RESTORATION_OUTPUT_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "outputs", "restoration")
+)
+try:
+    os.makedirs(DEFAULT_RESTORATION_OUTPUT_DIR, exist_ok=True)
+except Exception:
+    pass
+
 
 try:
     from config import CONFIG
@@ -546,7 +562,12 @@ def generate_ocr_variants(
 
 def generate_image_paths(
     image: Union[str, bytes, Image.Image, np.ndarray],
-    max_dim: int = 1600
+    max_dim: int = 1600,
+    grooves: Optional[Image.Image] = None,
+    squeeze: Optional[Image.Image] = None,
+    binarized: Optional[Image.Image] = None,
+    anomaly: Optional[Image.Image] = None,
+    mild_clahe: Optional[Image.Image] = None,
 ) -> Dict[str, Any]:
     """
     Establishes three strictly separated image paths for digital epigraphy:
@@ -566,13 +587,13 @@ def generate_image_paths(
     path_a = working_img.convert("RGB")
 
     # Path B: Mildly Enhanced OCR Alternative
-    path_b = apply_clahe_pillow(working_img, clip_limit=1.8, blend_strength=0.85)
+    path_b = mild_clahe if mild_clahe is not None else apply_clahe_pillow(working_img, clip_limit=1.8, blend_strength=0.85)
 
     # Path C: Edge and Relief Visualization (Human Inspection Only)
-    grooves = extract_chisel_grooves(path_b)
-    squeeze = digital_squeeze_rubbing(path_b, mode="charcoal_on_squeeze")
-    binarized = sauvola_binarization(path_b, window_size=25, k=0.2).convert("RGB")
-    anomaly = compute_experimental_surface_anomalies(working_img)
+    c_grooves = grooves if grooves is not None else extract_chisel_grooves(path_b)
+    c_squeeze = squeeze if squeeze is not None else digital_squeeze_rubbing(path_b, mode="charcoal_on_squeeze")
+    c_binarized = binarized if binarized is not None else sauvola_binarization(path_b, window_size=25, k=0.2).convert("RGB")
+    c_anomaly = anomaly if anomaly is not None else compute_experimental_surface_anomalies(working_img)
 
     return {
         "path_a": {
@@ -593,10 +614,10 @@ def generate_image_paths(
         },
         "path_c": {
             "images": {
-                "grooves": grooves,
-                "squeeze": squeeze,
-                "binarized": binarized,
-                "anomaly_map": anomaly,
+                "grooves": c_grooves,
+                "squeeze": c_squeeze,
+                "binarized": c_binarized,
+                "anomaly_map": c_anomaly,
             },
             "path_id": "path_c_relief_inspection",
             "label": "Path C: Edge and Relief Visualization (Inspection Only)",
@@ -606,8 +627,9 @@ def generate_image_paths(
         },
         "original": path_a,
         "mild_ocr": path_b,
-        "edge_relief": grooves,
-        "squeeze_rubbing": squeeze,
+        "mild_clahe": path_b,
+        "edge_relief": c_grooves,
+        "squeeze_rubbing": c_squeeze,
     }
 
 
@@ -757,7 +779,128 @@ def compute_experimental_surface_anomalies(
 
 
 # ==============================================================================
-# 6. MASTER RESTORATION PIPELINE & METADATA RETENTION
+# 6. RELIABLE IMAGE DELIVERY & DISK PERSISTENCE ENGINE
+# ==============================================================================
+
+def get_safe_display_image(
+    image_or_path: Any,
+    fallback_image: Optional[Any] = None,
+) -> Optional[Union[Image.Image, str]]:
+    """
+    Validates that an image object or file path exists and is renderable.
+    Prevents passing nonexistent file paths or raw dictionaries to Streamlit,
+    which causes 404 broken-image icons or serialization crashes.
+    """
+    if image_or_path is None:
+        return get_safe_display_image(fallback_image) if fallback_image is not None else None
+
+    # If it's a dict (e.g., from ocr_variants or image_paths)
+    if isinstance(image_or_path, dict):
+        candidate = (
+            image_or_path.get("image")
+            or image_or_path.get("path")
+            or image_or_path.get("saved_path")
+        )
+        return get_safe_display_image(candidate, fallback_image=fallback_image)
+
+    # If it's a file path string
+    if isinstance(image_or_path, str):
+        if os.path.isfile(image_or_path) and os.path.getsize(image_or_path) > 0:
+            return image_or_path
+        # If string is not an existing file, NEVER return the missing string path!
+        # Returning a nonexistent path string causes Streamlit to interpret it as a web URL -> 404 broken icon!
+        return get_safe_display_image(fallback_image) if fallback_image is not None else None
+
+    # If it's a PIL Image
+    if isinstance(image_or_path, Image.Image):
+        if image_or_path.width > 0 and image_or_path.height > 0:
+            return image_or_path
+        return get_safe_display_image(fallback_image) if fallback_image is not None else None
+
+    # If it's a NumPy array
+    if isinstance(image_or_path, np.ndarray):
+        if image_or_path.size > 0:
+            try:
+                return Image.fromarray(image_or_path)
+            except Exception:
+                pass
+        return get_safe_display_image(fallback_image) if fallback_image is not None else None
+
+    return None
+
+
+def save_restoration_outputs(
+    results: Dict[str, Any],
+    output_dir: Optional[str] = None,
+    source_id: str = "stone_inscription",
+) -> Dict[str, str]:
+    """
+    Persists generated digital restoration outputs to disk with consistent filenames.
+    Creates directories automatically, uses request/image-specific subdirectories
+    to prevent race conditions between concurrent requests, and verifies file
+    existence before returning absolute paths.
+    """
+    target_base = output_dir or DEFAULT_RESTORATION_OUTPUT_DIR
+    try:
+        os.makedirs(target_base, exist_ok=True)
+    except (OSError, PermissionError):
+        target_base = os.path.join(tempfile.gettempdir(), "kallvettu_restoration")
+        os.makedirs(target_base, exist_ok=True)
+
+    # Compute deterministic unique subfolder from image or source_id
+    subfolder_id = "default"
+    if "original" in results and isinstance(results["original"], Image.Image):
+        try:
+            h = hashlib.sha256(results["original"].tobytes()).hexdigest()[:16]
+            subfolder_id = f"{source_id}_{h}"
+        except Exception:
+            subfolder_id = f"{source_id}_{int(time.time())}"
+    else:
+        subfolder_id = f"{source_id}_{int(time.time())}"
+
+    # Sanitize folder name
+    subfolder_id = re.sub(r'[^a-zA-Z0-9_\-]', '_', subfolder_id)
+    req_dir = os.path.join(target_base, subfolder_id)
+    try:
+        os.makedirs(req_dir, exist_ok=True)
+    except Exception:
+        req_dir = target_base
+
+    saved_paths: Dict[str, str] = {}
+
+    layers_to_save = [
+        ("original", "original.png"),
+        ("mild_clahe", "mild_clahe.png"),
+        ("path_b", "path_b_mild_clahe.png"),
+        ("clahe", "clahe.png"),
+        ("denoised", "denoised.png"),
+        ("squeeze", "squeeze.png"),
+        ("grooves", "grooves.png"),
+        ("binarized", "binarized.png"),
+        ("enhancement_diff", "enhancement_diff.png"),
+        ("anomaly_map", "anomaly_map.png"),
+    ]
+
+    for key, filename in layers_to_save:
+        img_obj = results.get(key)
+        if isinstance(img_obj, Image.Image):
+            out_path = os.path.join(req_dir, filename)
+            try:
+                # Fast path: skip expensive PNG encoding if output already exists and is non-empty
+                if os.path.isfile(out_path) and os.path.getsize(out_path) > 0:
+                    saved_paths[key] = os.path.abspath(out_path)
+                else:
+                    img_obj.save(out_path, format="PNG")
+                    if os.path.isfile(out_path) and os.path.getsize(out_path) > 0:
+                        saved_paths[key] = os.path.abspath(out_path)
+            except Exception as e:
+                logger.warning(f"Could not persist {key} image to {out_path}: {e}")
+
+    return saved_paths
+
+
+# ==============================================================================
+# 7. MASTER RESTORATION PIPELINE & METADATA RETENTION
 # ==============================================================================
 
 def process_full_restoration(
@@ -816,7 +959,37 @@ def process_full_restoration(
 
     # Step 9: Independent OCR image variants (preserving raw pixel fidelity)
     ocr_vars = generate_ocr_variants(working_img, max_dim=max_dim)
-    img_paths = generate_image_paths(working_img, max_dim=max_dim)
+
+    # Step 10: Path B - Mild CLAHE reference (stroke-preserving contrast with zero halo)
+    var_mild_clahe = ocr_vars["mild_clahe"]["image"]
+
+    # Step 10b: Image Paths reusing precomputed layers to avoid redundant passes
+    img_paths = generate_image_paths(
+        working_img,
+        max_dim=max_dim,
+        grooves=grooves_img,
+        squeeze=squeeze_img,
+        binarized=binarized_img.convert("RGB"),
+        anomaly=anomaly_map,
+        mild_clahe=var_mild_clahe,
+    )
+
+    # Step 11: Persist restoration outputs to disk for reliable delivery
+    saved_paths = save_restoration_outputs(
+        results={
+            "original": working_img,
+            "mild_clahe": var_mild_clahe,
+            "path_b": var_mild_clahe,
+            "clahe": clahe_img,
+            "denoised": denoised_img,
+            "squeeze": squeeze_img,
+            "grooves": grooves_img,
+            "binarized": binarized_img.convert("RGB"),
+            "enhancement_diff": enhancement_diff,
+            "anomaly_map": anomaly_map,
+        },
+        source_id=source_identifier,
+    )
 
     total_duration = time.perf_counter() - start_total_time
 
@@ -841,6 +1014,8 @@ def process_full_restoration(
     return {
         "original": working_img,
         "original_pristine": original_pristine,
+        "mild_clahe": var_mild_clahe,
+        "path_b": var_mild_clahe,
         "clahe": clahe_img,
         "denoised": denoised_img,
         "squeeze": squeeze_img,
@@ -851,6 +1026,8 @@ def process_full_restoration(
         "erosion_map": anomaly_map,  # Backward compatibility alias
         "ocr_variants": ocr_vars,
         "image_paths": img_paths,
-        "default_ocr_image": ocr_vars["mild_clahe"]["image"],
+        "default_ocr_image": var_mild_clahe,
+        "saved_paths": saved_paths,
         "metadata": metadata
     }
+
