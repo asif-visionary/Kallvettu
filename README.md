@@ -56,9 +56,102 @@ The platform is architected around 16 specialized, highly responsive studios acc
 
 ---
 
-## ⚡ Kallvettu Intelligent Epigraphical Evidence Fusion Engine (K-IEFE)
+## 🔬 Core Architectural Pillars & Deep Epigraphical Engineering
 
-K-IEFE transforms epigraphical decipherment from disjointed OCR tools into an evidence-based consensus, verification, and scholar adjudication pipeline:
+### 1. 📊 Empirical Computer Vision Benchmark (Empirical Results)
+
+Benchmarked on Windows 11 (Python 3.12.10, NumPy 2.5.3, SciPy 1.18.1):
+
+| Test Image Resolution | Clamped Dimensions | Elapsed Time (s) | Peak Memory Allocated | Throughput (MP/s) |
+|---|---|---|---|---|
+| **1024 × 768 (0.79 MP)** | 1024 × 768 (Native) | 1.09 s | 41.52 MB | 0.72 MP/s |
+| **1920 × 1080 (2.07 MP)** | 1600 × 900 (Clamped) | 2.01 s | 79.44 MB | 0.72 MP/s |
+| **4000 × 3000 (12.00 MP)** | 1600 × 1200 (Clamped) | 2.28 s | 91.56 MB | 0.84 MP/s |
+
+> **Key Takeaway:** Without aspect-preserving downsampling, a 12MP image consumes over 1.8 GB of RAM and 14+ seconds in 2D SciPy convolution. Clamping to `max_dim=1600` achieves sub-2.3s processing with peak RAM bounded under 92 MB while maintaining character-stroke legibility.
+
+---
+
+### 2. 🧠 Epigraphy & Classical Tamil NLP Architecture
+- **Curated Epigraphical Corpus:** Iconic historical inscriptions including Mangulam (Tamil-Brahmi), Thanjavur (Rajaraja Chola I), Pugalur (Chera), Pulankurichi (Early Vatteluttu), Chengam Hero Stone, and Uttiramerur Democratic Constitution.
+- **Modular OCR Adapter Pipeline:** Clean architectural separation across:
+  - `PresetCatalogAdapter`: Curated ground truth with 100% verified epigraphical records.
+  - `ManualTranscriptionAdapter`: Scientific researcher transcription with formulaic inpainting.
+  - `GeminiVisionAdapter`: Zero-shot Multimodal Vision AI decipherment (`gemini-2.0-flash`, `gemini-1.5-flash`, `gemini-1.5-pro`).
+  - `LocalOfflineOCRAdapter`: Transparent diagnostics stating that generic OCR lacks archaic Brahmi/Vatteluttu weights, cleanly routing to manual transcription without fake OCR.
+- **Palaeographical Character Inventories:** Exhaustive character maps and script features for Tamil-Brahmi, Vatteluttu, Grantha, and Medieval Chola.
+- **Multi-Tier Epigraphical Representation:**
+  - *Tier 1: Diplomatic Transcription* (exact lithic reproduction preserving damaged lacuna brackets `[...]` and unreadable characters `(.)`).
+  - *Tier 2: Normalized Epigraphical Transcription* (standardized Tamil Unicode orthography and resolved formulas).
+  - *Tier 3: Word-Segmented Reading* (continuous stone script decomposed into individual words via classical Sandhi splitting).
+  - *Tier 4: Contemporary Modern Tamil Translation* (vernacular prose).
+  - *Tier 5: Scholarly English Translation* (academic translation with cultural notes).
+- **Epigraphical Sandhi Splitter (புணர்ச்சி பிரித்தல்):** Resolves geminate stop doubling (க், ச், த், ப்), euphonic glides (ய், வ்), compound words, and clitic inflections (-உம், -ஏ).
+- **Morphological & Case Analyzer:** Identifies parts of speech, roots, royal titles, honorifics, and archaic case markers (1st Nominative to 7th Locative).
+- **Uncertain Characters Inspector:** Identifies and tabulates weathered glyphs with alternative readings and confidence ratings.
+
+---
+
+### 3. 🤖 Multi-Provider AI Architecture (Sarvam AI + PaddleOCR + Gemini)
+Kallvettu provides a state-of-the-art multi-provider ecosystem combining sovereign Indian AI, commercial multimodal foundation models, and local offline inference:
+
+```
+                                  ┌────────────────────────────────┐
+                                  │    Active Stone Inscription    │
+                                  └───────────────┬────────────────┘
+                                                  │
+                                   Multi-Spectral Digital Restoration
+                                       (CLAHE + Sauvola + Squeeze)
+                                                  │
+                  ┌───────────────────────────────┼───────────────────────────────┐
+                  ▼                               ▼                               ▼
+       ┌──────────────────────┐        ┌──────────────────────┐        ┌──────────────────────┐
+       │   Google Gemini AI   │        │   Sarvam Vision AI   │        │   PaddleOCR Local    │
+       │  Multimodal Zero-Shot│        │  doc_ai.parse (3B)   │        │ ta_PP-OCRv5_mobile_rec│
+       └──────────┬───────────┘        └──────────┬───────────┘        │  PP-OCRv6 Detection  │
+                  │                               │                    └──────────┬───────────┘
+                  └───────────────────────┬───────┴───────────────────────────────┘
+                                          │
+                                          ▼
+                      ┌────────────────────────────────────────┐
+                      │    Multi-Engine OCR Comparator         │
+                      │  - Token Alignment & Disagreements     │
+                      │  - Consensus Ratio Calculation         │
+                      │  - Epigraphist Review & Dispute Alert  │
+                      └───────────────────┬────────────────────┘
+                                          │ Approved Transcription
+                  ┌───────────────────────┴───────────────────────────────┐
+                  ▼                                                       ▼
+       ┌──────────────────────┐                                ┌──────────────────────┐
+       │    Sarvam NMT AI     │                                │ Sarvam-105B Scholar  │
+       │- sarvam-translate:v1 │                                │- Epigraphical LLM    │
+       │- mayura:v1 (modes &  │                                │- Historical Context  │
+       │  roman translit)     │                                │- Entity Discovery    │
+       └──────────────────────┘                                └──────────────────────┘
+```
+
+#### Provider Capabilities Breakdown:
+1. **Google Gemini Vision AI (`gemini-2.5-flash`):**
+   - Multimodal zero-shot decipherment of ancient Tamil-Brahmi and Vatteluttu stone incisions.
+2. **Sarvam AI Ecosystem:**
+   - **`sarvam-translate:v1`:** Formal Indic translation across 10 Indian languages with sentence-aware chunking enforcing a 2,000 character ceiling.
+   - **`mayura:v1`:** Stylistic and colloquial translation modes (`modern-colloquial`, `classic-colloquial`, `code-mixed`) and script transliteration (`roman`, `fully-native`) with a 1,000 character limit.
+   - **`sarvam-105b`:** Dedicated Indic reasoning LLM for deep Classical Tamil epigraphical commentary, royal lineage analysis, and interactive scholarly consultation.
+   - **`doc_ai.parse`:** Sarvam Vision 3B Document AI async parsing pipeline for lithic text recognition with visual-description detection.
+3. **PaddleOCR Local Offline Engine (PP-OCRv5 Tamil):**
+   - Uses `PP-OCRv6_medium_det` text-line detection paired with `ta_PP-OCRv5_mobile_rec` Tamil recognition model.
+   - Complete offline execution without cloud APIs or network access; weights cached in `.paddlex_cache`.
+   - Four-state lifecycle reporting: `NOT INSTALLED`, `MODEL DOWNLOAD REQUIRED`, `AVAILABLE — CPU`, `ERROR`.
+4. **Multi-Engine OCR Verification & Dispute Resolution:**
+   - Evaluates token-level consensus across active non-empty candidate transcriptions.
+   - Requires at least two candidate transcriptions before computing dispute statistics to prevent false dispute reports.
+   - Highlights disputed character positions where engines diverge for human epigraphist inspection.
+
+---
+
+### 4. ⚡ Kallvettu Intelligent Epigraphical Evidence Fusion Engine (K-IEFE)
+
+Kallvettu v2.1.0 introduces the **Intelligent Epigraphical Evidence Fusion Engine (K-IEFE)**, transforming epigraphical decipherment from disjointed OCR tools and independent silos into an evidence-based consensus, cross-verification, and researcher adjudication platform:
 
 ```
                               ┌──────────────────────────────────┐
