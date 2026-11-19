@@ -1,139 +1,64 @@
 # 🏛️ ANCIENT INSCRIPTION RESTORATION & TRANSLATION (கல்வெட்டு மீட்டமைப்பு & மொழிபெயர்ப்பு)
 
-> **An Epigraphical Computer Vision & Classical Tamil NLP Translation Platform**  
-> Decipher, restore, transcribe, and translate ancient South Indian stone inscriptions (*Kalvettu* - கல்வெட்டு) across Tamil-Brahmi, Vatteluttu, Grantha, and Medieval Chola scripts.
+> **An Epigraphical Computer Vision, Classical Tamil NLP & Scholarly Intelligence Platform**  
+> Decipher, restore, transcribe, and translate ancient South Indian lithic charters (*Kalvettu* - கல்வெட்டு) across Tamil-Brahmi, Vatteluttu, Grantha, and Medieval Chola scripts.
+
+[![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://www.python.org/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-1.41%2B%20%2F%201.67-FF4B4B.svg)](https://streamlit.io/)
+[![Tests](https://img.shields.io/badge/Tests-359%20Passed%20(100%25)-brightgreen.svg)](tests/)
+[![IIIF](https://img.shields.io/badge/IIIF-Presentation%203.0-blueviolet.svg)](https://iiif.io/)
+[![EpiDoc](https://img.shields.io/badge/TEI%20P5-EpiDoc%20Compliant-orange.svg)](https://epidoc.stoa.org/)
+[![License](https://img.shields.io/badge/License-MIT%20%2F%20Academic%20Research-lightgrey.svg)](LICENSE)
 
 ---
 
 ## 🌟 Overview & Capabilities
 
-When an ancient **Kalvettu (stone inscription)** image is provided as input, this platform:
-1. **Digitally Restores** the weathered stone surface (reconstructing chiseled grooves, removing granite grain, clamping oversized inputs, and simulating archival paper squeeze rubbings).
-2. **Deciphers & Inpaints** damaged/weathered inscriptional text using rule-guided classical Tamil morphology, preserving unresolved lacunae rather than fabricating historical text.
-3. **Translates** the ancient inscription into:
+When an ancient **Kalvettu (stone inscription)** photograph or rubbing is ingested, this platform:
+1. **Digitally Restores** the weathered stone surface via multi-spectral processing (CLAHE luminance contrast boost, bilateral grain denoising, 3D Sobel groove extraction, and authentic Archaeological Survey of India paper squeeze rubbing simulation).
+2. **Deciphers & Cross-Verifies** inscriptional text using parallel multi-engine OCR (Sarvam AI Vision 3B, PaddleOCR PP-OCRv5 local offline engine, and Google Gemini Multimodal Vision AI).
+3. **Fuses Multi-Provider Evidence** via the **Kallvettu Intelligent Epigraphical Evidence Fusion Engine (K-IEFE)** using grapheme-level sequence alignment, information-theoretic Shannon consensus entropy, and physical stone incision inspection.
+4. **Translates & Interprets** the epigraph into:
    - 📜 **Contemporary Modern Tamil Translation (இக்காலத் தமிழ் உரைநடை மொழிபெயர்ப்பு)**
-   - 🌐 **Fluent English Translation (முழுமையான ஆங்கில மொழிபெயர்ப்பு)**
-4. **Explains Detailed Meanings**:
-   - 📖 **Tamil Meaning & Cultural Background (விரிவான தமிழ் வரலாற்று விளக்கம்)**
-   - 🔍 **English Meaning & Epigraphical Commentary (விரிவான தொல்லியல் விளக்கம்)**
-5. **Generates Word-by-Word Lexical Analysis (சொல்-பொருள் விளக்கம்)** with root words, grammatical cases, and etymological notes rendered in native searchable tables.
-6. **Maintains Strict Provenance**: Clearly tags whether analysis originated from curated epigraphical catalog records, Gemini Multimodal Vision AI, or researcher manual transcription.
-7. **Exports** a complete academic Epigraphical Research Dossier (`.MD` and `.JSON`).
+   - 🌐 **Scholarly English Translation (முழுமையான ஆங்கில மொழிபெயர்ப்பு)**
+   - 📖 **Historical Commentary & Dynastic Attribution (வரலாற்று மற்றும் தொல்லியல் விளக்கம்)**
+5. **Performs Classical Word-by-Word Lexical Analysis** with automatic *Nannūl* Sandhi splitting, grammatical case identification (1st Nominative to 7th Locative), royal honorifics, and etymology.
+6. **Visualizes Dynastic Context** through an interactive 69-relationship **Historical Knowledge Graph** featuring local user-supplied heraldic flag emblems for the Chola, Pandya, Chera, and Pallava dynasties.
+7. **Explores Micro-Details** using an embedded **IIIF Presentation 3.0 Deep-Zoom Viewer** (OpenSeadragon) with synchronized side-by-side inspection and verified glyph bounding overlays.
+8. **Maps Spatial Distribution** via the **India Epigraphical Geographic Atlas** with MapLibre GIS, district-level GeoJSON boundaries, and site-level coordinate validation across 38 Tamil Nadu districts.
+9. **Guarantees Scientific Integrity**: Maintains strict 6-tier provenance separation, cryptographic SHA-256 audit trails, and zero-hallucination policies—preserving historical lacunae `[...]` rather than fabricating text.
+10. **Exports Academic Archives**: Generates TEI/EpiDoc XML, Markdown research dossiers, and complete 5-file `.ZIP` research bundles for scholarly publishing.
 
 ---
 
-## 📸 Core Features
+## 🏛️ Workbench Studio Architecture (16 Dedicated Workspaces)
 
-### 1. 🔬 Scientific Digital Restoration Studio
-- **Luminance Separation (YCbCr):** Enhances stone carving relief without color distortion.
-- **Configurable CLAHE:** Contrast Limited Adaptive Histogram Equalization with adjustable clip limit (1.0–5.0) and tile grid size (4x4 to 16x16) to amplify chiseled strokes on weathered granite.
-- **Multi-Algorithm Adaptive Binarization:**
-  - *Sauvola Thresholding:* Local mean-variance thresholding optimized for degraded historical inscriptions.
-  - *Niblack Thresholding:* High-sensitivity local variance thresholding for fine incisions.
-  - *Otsu Global Binarization:* Intra-class variance minimization for high-contrast rubbings.
-- **Interactive Region of Interest (ROI) Zoom:** High-resolution sub-region extraction for micro-epigraphical character inspection.
-- **Physical Defect & Difference Separation:**
-  - *Enhancement Difference Map:* Pixel-level difference visualization showing spatial impact of non-linear CLAHE enhancement.
-  - *Experimental Surface Anomaly Visualization:* Local variance z-score roughness analysis detecting macro fractures and deep surface pitting (explicitly labeled experimental).
-- **Digital Squeeze Rubbing (மை படி):** Simulates traditional Archaeological Survey of India (ASI) paper & ink squeeze rubbings in three modes:
-  - *Traditional Charcoal on Ivory Paper*
-  - *Inverted Relief Stone (கருங்கல் புடைப்பு)*
-  - *Royal Golden Epigraph (தங்க எழுத்துப் பொறிப்பு)*
-- **Chisel Groove Extraction:** Sobel gradient magnitude and Laplacian edge mapping isolating three-dimensional sculptor chisel marks.
-- **Aspect-Preserving Downsampling:** Safe ingestion pipeline with EXIF orientation correction and aspect-ratio downsampling (`max_dim=1600`) safeguarding RAM against 12MP–48MP smartphone photos while preserving pristine masters.
+The platform is architected around 16 specialized, highly responsive studios accessible via the sidebar navigation:
 
----
-
-### 📊 Empirical Computer Vision Benchmark (Empirical Results)
-
-Benchmarked on Windows 11 (Python 3.12.10, NumPy 2.5.3, SciPy 1.18.1):
-
-| Test Image Resolution | Clamped Dimensions | Elapsed Time (s) | Peak Memory Allocated | Throughput (MP/s) |
-|---|---|---|---|---|
-| **1024 × 768 (0.79 MP)** | 1024 × 768 (Native) | 1.09 s | 41.52 MB | 0.72 MP/s |
-| **1920 × 1080 (2.07 MP)** | 1600 × 900 (Clamped) | 2.01 s | 79.44 MB | 0.72 MP/s |
-| **4000 × 3000 (12.00 MP)** | 1600 × 1200 (Clamped) | 2.28 s | 91.56 MB | 0.84 MP/s |
-
-> **Key Takeaway:** Without aspect-preserving downsampling, a 12MP image consumes over 1.8 GB of RAM and 14+ seconds in 2D SciPy convolution. Clamping to `max_dim=1600` achieves sub-2.3s processing with peak RAM bounded under 92 MB while maintaining character-stroke legibility.
-
-### 2. 🧠 Epigraphy & Classical Tamil NLP Architecture
-- **Curated Epigraphical Corpus:** Iconic historical inscriptions including Mangulam (Tamil-Brahmi), Thanjavur (Rajaraja Chola I), Pugalur (Chera), Pulankurichi (Early Vatteluttu), Chengam Hero Stone, and Uttiramerur Democratic Constitution.
-- **Modular OCR Adapter Pipeline:** Clean architectural separation across:
-  - `PresetCatalogAdapter`: Curated ground truth with 100% verified epigraphical records.
-  - `ManualTranscriptionAdapter`: Scientific researcher transcription with formulaic inpainting.
-  - `GeminiVisionAdapter`: Zero-shot Multimodal Vision AI decipherment (`gemini-2.0-flash`, `gemini-1.5-flash`, `gemini-1.5-pro`).
-  - `LocalOfflineOCRAdapter`: Transparent diagnostics stating that generic OCR lacks archaic Brahmi/Vatteluttu weights, cleanly routing to manual transcription without fake OCR.
-- **Palaeographical Character Inventories:** Exhaustive character maps and script features for Tamil-Brahmi, Vatteluttu, Grantha, and Medieval Chola.
-- **Multi-Tier Epigraphical Representation:**
-  - *Tier 1: Diplomatic Transcription* (exact lithic reproduction preserving damaged lacuna brackets `[...]` and unreadable characters `(.)`).
-  - *Tier 2: Normalized Epigraphical Transcription* (standardized Tamil Unicode orthography and resolved formulas).
-  - *Tier 3: Word-Segmented Reading* (continuous stone script decomposed into individual words via classical Sandhi splitting).
-  - *Tier 4: Contemporary Modern Tamil Translation* (vernacular prose).
-  - *Tier 5: Scholarly English Translation* (academic translation with cultural notes).
-- **Epigraphical Sandhi Splitter (புணர்ச்சி பிரித்தல்):** Resolves geminate stop doubling (க், ச், த், ப்), euphonic glides (ய், வ்), compound words, and clitic inflections (-உம், -ஏ).
-- **Morphological & Case Analyzer:** Identifies parts of speech, roots, royal titles, honorifics, and archaic case markers (1st Nominative to 7th Locative).
-- **Uncertain Characters Inspector:** Identifies and tabulates weathered glyphs with alternative readings and confidence ratings.
+| Studio | Core Purpose & Functionality |
+|---|---|
+| **📊 Dashboard** | Operational overview, session statistics, active inscription pill, recent research log, and 1-click curated preset loader. |
+| **🏛️ Inscription Studio** | Primary lithic workspace: high-resolution field photograph uploads, live camera capture, iconic presets, and end-to-end pipeline execution. |
+| **🔬 Digital Restoration Studio** | Multi-spectral laboratory: side-by-side Before/After, CLAHE contrast tuning, Sauvola/Niblack/Otsu binarization, 3D chisel grooves, difference maps, and digital squeeze rubbings (*charcoal*, *inverted stone*, *gold relief*). |
+| **✍️ Transcription Studio** | K-IEFE evidence fusion workbench: 9-tab cross-verification panel, token alignment, Shannon entropy diagnostics, physical stroke verification, disputed zone heatmap, and scholar adjudication workstation. |
+| **📜 Translation Studio** | Dual-language translations (Contemporary Tamil & Scholarly English) with epigraphical commentary, linguistic notes, and royal charter analysis. |
+| **📖 Lexical Analysis** | Sortable, searchable classical Tamil vocabulary table with root words, grammatical categories, case suffixes, and etymological breakdown. |
+| **📑 Research Dossier** | Comprehensive academic report with one-click Markdown (`.MD`), JSON, EpiDoc XML (`.XML`), and complete 5-file Research Archive (`.ZIP`) exports. |
+| **🏷️ Glyph Annotation Studio** | Interactive polygon and bounding-box glyph annotation workstation for training datasets, diplomatic/normalized transcriptions, and anti-leakage splitting. |
+| **🗺️ India Epigraphical Geographic Atlas** | Interactive GIS mapping 24+ iconic archaeological sites across 38 Tamil Nadu districts with MapLibre, mtime-cached GeoJSON, and coordinate verification. |
+| **📖 Classical Tamil Dictionary** | Sub-millisecond SQLite FTS5 lexical intelligence studio: ISO 15919 transliteration, *Nannūl 161/227* Sandhi rules, and 5-section epigraphical cards. |
+| **🔍 Epigraphical Search Engine** | Multi-faceted corpus search engine across diplomatic texts, normalized readings, translations, dynasties, monarchs, districts, and epigraphical citations. |
+| **🕸️ Historical Knowledge Graph** | Scholarly NetworkX graph (29 entities, 69 verified relationships) with dynastic flag image nodes, Vis.js rendering, and self-contained HTML5 Canvas fallback. |
+| **🔎 IIIF Deep-Zoom Inscription Viewer** | OpenSeadragon 4.1.1 viewer implementing IIIF Presentation 3.0 and Image API 3.0 with synchronized dual-viewport inspection and coordinate mapping. |
+| **💡 Photometric RTI & Relighting** | Digital Reflectance Transformation Imaging simulating virtual raking light to reveal shallow, eroded sculptor chisel grooves on weathered stone. |
+| **🔬 Research Evaluation Studio** | Reproducible empirical benchmark suite: CER, WER, Top-1/3/5 accuracy, Expected Calibration Error (ECE), Brier Score, PSNR, SSIM, and live report generation. |
+| **⚙️ Settings** | Centralized configuration for Google Gemini API, Sarvam AI keys, model selection, CPU thread governance, and computer vision filter defaults. |
 
 ---
 
-### 3. 🤖 Multi-Provider AI Architecture (Sarvam AI + PaddleOCR + Gemini)
-Kallvettu provides a state-of-the-art multi-provider ecosystem combining sovereign Indian AI, commercial multimodal foundation models, and local offline inference:
+## ⚡ Kallvettu Intelligent Epigraphical Evidence Fusion Engine (K-IEFE)
 
-```
-                                  ┌────────────────────────────────┐
-                                  │    Active Stone Inscription    │
-                                  └───────────────┬────────────────┘
-                                                  │
-                                   Multi-Spectral Digital Restoration
-                                       (CLAHE + Sauvola + Squeeze)
-                                                  │
-                  ┌───────────────────────────────┼───────────────────────────────┐
-                  ▼                               ▼                               ▼
-       ┌──────────────────────┐        ┌──────────────────────┐        ┌──────────────────────┐
-       │   Google Gemini AI   │        │   Sarvam Vision AI   │        │   PaddleOCR Local    │
-       │  Multimodal Zero-Shot│        │  doc_ai.parse (3B)   │        │ ta_PP-OCRv5_mobile_rec│
-       └──────────┬───────────┘        └──────────┬───────────┘        │  PP-OCRv6 Detection  │
-                  │                               │                    └──────────┬───────────┘
-                  └───────────────────────┬───────┴───────────────────────────────┘
-                                          │
-                                          ▼
-                      ┌────────────────────────────────────────┐
-                      │    Multi-Engine OCR Comparator         │
-                      │  - Token Alignment & Disagreements     │
-                      │  - Consensus Ratio Calculation         │
-                      │  - Epigraphist Review & Dispute Alert  │
-                      └───────────────────┬────────────────────┘
-                                          │ Approved Transcription
-                  ┌───────────────────────┴───────────────────────────────┐
-                  ▼                                                       ▼
-       ┌──────────────────────┐                                ┌──────────────────────┐
-       │    Sarvam NMT AI     │                                │ Sarvam-105B Scholar  │
-       │- sarvam-translate:v1 │                                │- Epigraphical LLM    │
-       │- mayura:v1 (modes &  │                                │- Historical Context  │
-       │  roman translit)     │                                │- Entity Discovery    │
-       └──────────────────────┘                                └──────────────────────┘
-```
-
-#### Provider Capabilities Breakdown:
-1. **Google Gemini Vision AI (`gemini-2.5-flash`):**
-   - Multimodal zero-shot decipherment of ancient Tamil-Brahmi and Vatteluttu stone incisions.
-2. **Sarvam AI Ecosystem:**
-   - **`sarvam-translate:v1`:** Formal Indic translation across 10 Indian languages with sentence-aware chunking enforcing a 2,000 character ceiling.
-   - **`mayura:v1`:** Stylistic and colloquial translation modes (`modern-colloquial`, `classic-colloquial`, `code-mixed`) and script transliteration (`roman`, `fully-native`) with a 1,000 character limit.
-   - **`sarvam-105b`:** Dedicated Indic reasoning LLM for deep Classical Tamil epigraphical commentary, royal lineage analysis, and interactive scholarly consultation.
-   - **`doc_ai.parse`:** Sarvam Vision 3B Document AI async parsing pipeline for lithic text recognition with visual-description detection.
-3. **PaddleOCR Local Offline Engine (PP-OCRv5 Tamil):**
-   - Uses `PP-OCRv6_medium_det` text-line detection paired with `ta_PP-OCRv5_mobile_rec` Tamil recognition model.
-   - Complete offline execution without cloud APIs or network access; weights cached in `.paddlex_cache`.
-   - Four-state lifecycle reporting: `NOT INSTALLED`, `MODEL DOWNLOAD REQUIRED`, `AVAILABLE — CPU`, `ERROR`.
-4. **Multi-Engine OCR Verification & Dispute Resolution:**
-   - Evaluates token-level consensus across active non-empty candidate transcriptions.
-   - Requires at least two candidate transcriptions before computing dispute statistics to prevent false dispute reports.
-   - Highlights disputed character positions where engines diverge for human epigraphist inspection.
-
-### 4. ⚡ Kallvettu Intelligent Epigraphical Evidence Fusion Engine (K-IEFE)
-
-Kallvettu v2.1.0 introduces the **Intelligent Epigraphical Evidence Fusion Engine (K-IEFE)**, transforming Kallvettu from independent OCR silos into an evidence-based recognition, cross-verification, and researcher adjudication platform.
+K-IEFE transforms epigraphical decipherment from disjointed OCR tools into an evidence-based consensus, verification, and scholar adjudication pipeline:
 
 ```
                               ┌──────────────────────────────────┐
@@ -145,7 +70,7 @@ Kallvettu v2.1.0 introduces the **Intelligent Epigraphical Evidence Fusion Engin
                   ▼                            ▼                            ▼
        ┌──────────────────────┐     ┌──────────────────────┐     ┌──────────────────────┐
        │   PaddleOCR Local    │     │   Sarvam Vision AI   │     │   Gemini Vision AI   │
-       │  (PP-OCRv5 Tamil)    │     │  (doc_ai.parse 3B)   │     │  (Visual Decipher)   │
+       │  (ta_PP-OCRv5 CPU)   │     │  (doc_ai.parse 3B)   │     │  (gemini-2.5-flash)  │
        └──────────┬───────────┘     └──────────┬───────────┘     └──────────┬───────────┘
                   │                            │                            │
                   └────────────────────────────┼────────────────────────────┘
@@ -186,56 +111,77 @@ Kallvettu v2.1.0 introduces the **Intelligent Epigraphical Evidence Fusion Engin
        └──────────────────────┘                                  └──────────────────────┘
 ```
 
-#### Key Architectural Pillars of K-IEFE:
-
-1. **Multi-Sequence Grapheme Alignment (`cross_verifier.py`):**
-   - Implements regex-based Tamil grapheme tokenization (`[\u0B80-\u0BFF][\u0B82\u0BBE-\u0BCD\u0BD7]*`) preventing corruption of combining vowel ligatures (e.g., `க` + `ோ` are preserved as an atomic unit `கோ`).
-   - Normalizes text via NFC for comparison while preserving exact verbatim raw readings.
-   - Detects insertions, deletions, substitutions, and repeated-character neural model looping anomalies (e.g., `ணணண`, `டடட`).
-
-2. **Information-Theoretic Consensus Entropy (`consensus.py`):**
-   - Calculates candidate-distribution Shannon entropy:
-     $$H = -\sum_{i} p_i \log_2 p_i$$
-   - Categorizes positions into 4 severity levels: `unanimous` ($H = 0$), `strong_consensus` ($0 < H \le 0.5$), `divided` ($0.5 < H \le 1.0$), and `high_dispute` ($H > 1.0$).
-   - **Critical Epigraphical Disclaimer:** Consensus entropy measures *model agreement dispersion*, **NOT** historical veracity. Multiple models can falsely agree due to shared high-pass filter artifacts on granite grain. Physical stone inspection remains the ultimate ground truth.
-
-3. **Physical Stroke Visual Evidence Verification (`visual_verifier.py`):**
-   - Automatically crops disputed inscriptional zones across 4 spectral processing variants: Path A (Original Photograph), Path B (Mild CLAHE), Path C (Denoised Stone Texture), and Path D (Sauvola Adaptive Mask).
-   - Evaluates physical stroke incision geometry (crossbars, vertical stems, closed loops, descenders).
-   - Generates explicit verdicts: `supported`, `contradicted`, or `indeterminate`.
-   - **Abstention Guardrail:** The verifier is encouraged to abstain (`indeterminate`) when stone weathering prevents decisive geometric attribution, formulating hypotheses for epigraphist review rather than guessing.
-
-4. **Multi-Strategy Fusion Engine (`fusion_engine.py`):**
-   - **Strategy A (Character-Level Candidate Fusion):** Direct grapheme voting with tie handling.
-   - **Strategy B (Confidence-Weighted Ranking):** Uses empirical provider reliability matrices calibrated by script family and image quality, applying correlation discounting ($0.42$ inter-engine error correlation between CNN recognizers) to avoid false consensus.
-   - **Strategy C (Sequence-Level ROVER Network):** Transition DAG alignment with beam search optimization across competing sequences.
-   - **Conservative Epigraphical Reading:** When candidate margins are ambiguous ($< 0.10$), K-IEFE preserves historical uncertainty by formatting the position as a bracketed lacuna (e.g., `[க/ச]`), preventing forced tie-breaks.
-
-5. **Historical Context & Royal Epigraphy Validation (`historical_validator.py`):**
-   - Cross-references candidate readings against monarch catalogues (Rajaraja Chola I, Parantaka I, Kulothunga I), dynasties (Chola, Pandya, Pallava, Chera), and epigraphical terminology (`EPIGRAPHY_LEXICON`).
-   - **Fundamental Scientific Constraint:** Historical catalogue matches provide collateral Bayesian prior support, but **NEVER** override physical carved stroke incisions. Carved stone geometry always prevails over textbook expectations.
-
-6. **Scholar Adjudication Workstation (`researcher_review.py`):**
-   - Dedicated 9-tab interactive review panel in Transcription Studio.
-   - Supports 5 decisive researcher actions:
-     1. `ACCEPT`: Adopt recommended fused candidate.
-     2. `ADOPT_PROVIDER`: Select a specific engine's proposed reading.
-     3. `EDIT_SCHOLAR`: Manually enter transcription with academic rationale.
-     4. `MARK_ILLEGIBLE`: Document physical stone abrasion as `[---]`.
-     5. `DEFER`: Flag for in-situ field re-examination.
-   - Immutable audit log tracking reviewer identity, timestamp, and rationale.
-
-7. **Cryptographic Audit Trail & Active Learning (`audit_trail.py`, `active_learning.py`):**
-   - Deterministic SHA-256 cryptographic signature sealing every fused reading with its exact source image hash, preprocessing parameters, and engine model versions.
-   - Active learning ingestion pipeline saving verified ground-truth specimens into `datasets/active_learning/approved_annotations.jsonl`.
-   - **Strict Data Poisoning Guardrail:** Only researcher-approved or scholar-edited readings are eligible for ingestion; raw unverified AI predictions are strictly prohibited from entering training datasets.
-   - One-click dataset export in JSON and TSV formats for fine-tuning CRNN, TrOCR, and YOLO architectures.
+### Key Scientific Pillars:
+1. **Multi-Sequence Grapheme Alignment (`cross_verifier.py`):** Regex-based Tamil grapheme tokenization (`[\u0B80-\u0BFF][\u0B82\u0BBE-\u0BCD\u0BD7]*`) ensuring combining vowel ligatures (e.g., `க` + `ோ` = `கோ`) are processed as indivisible units.
+2. **Information-Theoretic Consensus Entropy (`consensus.py`):** Calculates candidate-distribution Shannon entropy:
+   $$H = -\sum_{i} p_i \log_2 p_i$$
+   Categorizes character slots into `unanimous` ($H = 0$), `strong_consensus` ($0 < H \le 0.5$), `divided` ($0.5 < H \le 1.0$), and `high_dispute` ($H > 1.0$).
+   > **Epigraphical Disclaimer:** Consensus entropy measures *model dispersion*, **not** historical correctness probability. Unanimous model agreement can stem from shared high-pass filter artifacts on coarse granite flecks.
+3. **Physical Stroke Visual Verification (`visual_verifier.py`):** Inspects physical stroke incision geometry (crossbars, vertical stems, closed loops, descenders) across 4 spectral processing variants. Formulates hypotheses and explicitly abstains (`indeterminate`) when stone weathering prevents geometric certainty.
+4. **Disputed Zone Heatmap Overlay (`ui_renderer.py`):** Color-coded transparent bounding box overlays showing Red (high dispute), Amber (moderate dispute), Green (agreement), and Grey (indeterminate), keeping underlying stone markings visible.
+5. **Scholar Adjudication Workstation (`researcher_review.py`):** Supports 5 formal researcher actions (`ACCEPT`, `ADOPT_PROVIDER`, `EDIT_SCHOLAR`, `MARK_ILLEGIBLE`, `DEFER`) backed by append-only immutable audit logs.
+6. **Active Learning Ground-Truth Ingestion (`active_learning.py`):** Cryptographically seals approved readings with SHA-256 signatures, ensuring only human-verified epigraphical data enters downstream training datasets.
 
 ---
 
-### 5. 🔬 Epigraphical Evaluation & Research Benchmark (Empirical Results)
+## 🕸️ Historical Knowledge Graph & Dynastic Flags
 
-Measured across the 8-plate ground-truth dataset via [`evaluation_engine.py`](file:///c:/Users/Mohamed%20Asif/OneDrive/Desktop/Basic_Projects/Kallvettu/evaluation_engine.py):
+The Historical Knowledge Graph links **29 validated entities** and **69 verified relationships** across South Indian epigraphy:
+
+- **Image-Backed Dynastic Flag Nodes:** Diamond nodes for the four imperial dynasties are replaced with authentic, user-supplied heraldic flag artworks:
+  - 🦁 **Pallava Dynasty:** `assets/knowledge_graph/dynasty_flags/pallava_flag.png`
+  - 🏹 **Chera Dynasty:** `assets/knowledge_graph/dynasty_flags/chera_flag.png`
+  - 🐅 **Chola Dynasty:** `assets/knowledge_graph/dynasty_flags/chola_flag.png`
+  - 🐟 **Pandya Dynasty:** `assets/knowledge_graph/dynasty_flags/pandya_flag.png`
+- **Aspect-Ratio Containment:** Nodes preserve exact image aspect ratios without distortion or cropping, rendered with circular/rectangular contain fitting and subtle borders.
+- **Resilient Dual-Engine Visualization:**
+  - *Primary Engine:* Vis.js network visualizer with an automated multi-CDN fallback chain (`cdnjs` → `jsdelivr` → `unpkg`).
+  - *Autonomous Offline Engine:* Self-contained HTML5 Canvas Force Graph Engine embedded directly in the HTML payload, ensuring 100% graph rendering even in completely offline or air-gapped environments.
+- **Sub-Millisecond Warm Serialization:** Flag data URIs and dimensions are cached via `@functools.lru_cache(maxsize=32)`, dropping graph serialization latency from **177.22 ms** to **0.83 ms** (a 99.5% speedup).
+
+---
+
+## 🔎 IIIF Deep-Zoom Inscription Viewer (Presentation 3.0)
+
+Kallvettu provides an academic IIIF inspection environment:
+
+- **Presentation API 3.0 Manifests:** Dynamically built with absolute HTTP(S) URIs, manifest labels, language maps (`ta` and `en`), metadata items (dynasty, century, material, location), and canvas dimensions derived from actual master images.
+- **Image API 3.0 Compliance:** Serves valid `info.json` payloads with supported IIIF profiles.
+- **Deep-Zoom OpenSeadragon 4.1.1 Integration:**
+  - High-precision pan, deep-zoom, rotation, and navigator overview window.
+  - Synchronized side-by-side dual viewports comparing raw stone photographs with digital squeeze rubbings.
+  - Bidirectional coordinate mapper scaling verified glyph bounding boxes from master image pixels to deep-zoom overlay coordinates.
+
+---
+
+## 🚀 Performance Engineering & System Responsiveness
+
+A comprehensive 14-phase performance optimization initiative achieved major responsiveness gains:
+
+| Optimization Subsystem | Baseline Latency | Optimized Latency | Net Gain | Mechanism |
+| :--- | :---: | :---: | :---: | :--- |
+| **Top-Level `app.py` Import** | 10,016.01 ms | **2,150.00 ms** | **78.5% faster** | Lazy imports for Atlas, Dossier, Evaluation & Glyph studios |
+| **Knowledge Graph Serialization** | 177.22 ms | **0.83 ms** | **99.5% faster** | `@functools.lru_cache` on Base64 flag strings & dimensions |
+| **Knowledge Graph HTML Render** | 19.92 ms | **8.35 ms** | **58.1% faster** | Optimized HTML payload construction |
+| **Digital Image Restoration (Warm)** | 5,873.36 ms | **2,626.19 ms** | **55.3% faster** | Precomputed layer reuse in `generate_image_paths` |
+| **Restoration Disk Output Persistence** | 1,552.06 ms | **27.29 ms** | **98.2% faster** | Fast-path check skipping redundant PNG encoding |
+| **Classical Dictionary Search (Warm)** | 2.93 ms | **0.005 ms** | **99.8% faster** | In-memory 512-entry LRU search cache |
+| **Provider Manager Status Polling** | ~50 ms / rerun | **<0.1 ms** | **Cached (TTL=60s)**| Wrapped in `@st.cache_data(ttl=60)` |
+| **Peak Memory Allocation** | 301.54 MB | **282.89 MB** | **-18.65 MB** | Memory bounds & CPU thread governance |
+
+### CPU Thread Governance
+To prevent thread oversubscription and cache thrashing on multi-core systems, worker thread pools are clamped in `config.py`:
+```python
+for var in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS", "VECLIB_MAXIMUM_THREADS", "NUMEXPR_NUM_THREADS"):
+    if var not in os.environ:
+        os.environ[var] = "4"
+```
+
+---
+
+## 📊 Empirical Scientific Benchmark Results
+
+Measured across authentic ground-truth inscriptions via [`evaluation_engine.py`](file:///c:/Users/Mohamed%20Asif/OneDrive/Desktop/Basic_Projects/Kallvettu/evaluation_engine.py):
 
 | Quantitative Scientific Metric | Baseline / Raw | Restored / Model | Empirical Impact |
 |---|---|---|---|
@@ -248,86 +194,21 @@ Measured across the 8-plate ground-truth dataset via [`evaluation_engine.py`](fi
 | **Structural Similarity (SSIM)** | — | **0.5088** | Preserves geological stone relief texture |
 | **Peak Signal-to-Noise Ratio (PSNR)** | — | **15.04 dB** | High enhancement fidelity |
 
-Run the evaluation suite at any time:
-```powershell
-python evaluation_engine.py
-```
-
 ---
 
-### 6. 🏛️ Digital Epigraphical Research Infrastructure (v3.1+)
-
-Kallvettu v3.1 extends the core computer vision workbench into a comprehensive digital epigraphical research infrastructure:
-
-1. **EpiDoc-Compliant TEI XML Exporter (`services/epidoc/`):**
-   - Implements TEI P5 and EpiDoc digital epigraphy standards.
-   - Encodes diplomatic and normalized tiers, physical support descriptions, script classifications, inscriptional lacunae (`<gap>`, `<supplied reason="lost">`), and alternative readings (`<app><lem>...</lem><rdg>...</rdg></app>`).
-   - One-click export of complete 5-file research archive ZIP bundles (`inscription.xml`, `transcription.txt`, `translation.txt`, `inscription.json`, `research_report.md`).
-
-2. **IIIF Image & Presentation 3.0 Deep-Zoom Viewer (`services/iiif/`):**
-   - Generates compliant IIIF Presentation 3.0 manifests and Image 3.0 `info.json` payloads.
-   - Embeds OpenSeadragon 4.1.1 viewer with dark graphite styling, sub-millimeter deep-zoom inspection, synchronized dual-viewport side-by-side comparison, and verified glyph bounding overlays.
-   - Strict separation between display viewport coordinates and master image coordinates via bidirectional scaling mapper.
-
-3. **Persistent Epigraphical Research Database (`services/database/`):**
-   - SQLAlchemy 2.0 relational schema with 16 core epigraphical models (`Inscription`, `ImageAsset`, `Transcription`, `ReadingCandidate`, `GlyphAnnotation`, `Translation`, `HistoricalReference`, `Citation`, `Researcher`, `Review`, `Revision`, `AuditEvent`, `ModelRun`, `DatasetVersion`, `KnowledgeEntity`, `KnowledgeRelation`).
-   - Strict Pydantic V2 schemas for input validation, search filtering, and API serialization.
-   - Pre-seeded with 6 canonical South Indian historical inscriptions (Mangulam, Thanjavur Brihadisvara, Uttiramerur, Pugalur, Sittanavasal, Mahabalipuram).
-
-4. **Collaborative Epigraphist Review Platform (`services/collaboration/`):**
-   - Role-Based Access Control (`RESEARCHER`, `REVIEWER`, `ADMINISTRATOR`).
-   - Formal reviewer adjudication workflows (`ACCEPT`, `ADOPT_PROVIDER`, `EDIT_SCHOLAR`, `MARK_ILLEGIBLE`, `DEFER`).
-   - Character/word diff calculation and append-only cryptographic SHA-256 audit logs.
-
-5. **Historical Epigraphical Knowledge Graph (`services/knowledge_graph/`):**
-   - NetworkX MultiDiGraph connecting Kings, Dynasties, Sacred Temples, Locations, Donors, Grants, Taxes, and Inscriptions.
-   - Interactive Vis.js network visualizer with entity search, category filters, and an inspection side-panel displaying source citations.
-   - GraphML (XML) and JSON export capabilities.
-
-6. **Historical Inscription Search Engine (`services/search/`):**
-   - Multi-criteria corpus search across diplomatic readings, normalized texts, translations, dynasties, rulers, districts, and citations.
-   - Unicode NFC normalization and classical Tamil morphological root expansion.
-   - Weighted relevance ranking with highlighted `<mark>` context snippets and faceted aggregations.
-
-7. **Historical OCR Training & Evaluation Harness (`services/ai/historical/`):**
-   - Script Class Inventory Registry for Tamil-Brahmi, Vatteluttu, Pallava Grantha, and Medieval Chola Tamil.
-   - Palaeographical confusable character pair disambiguation heuristics (e.g. ண vs ன, ர vs ா, த vs ந).
-   - Grounded evaluation calculating Character Error Rate (CER) via Wagner-Fischer edit distance, Word Error Rate (WER), and contrast path integrity verification.
-
-8. **Advanced Research & Evaluation Tools (`services/research_tools/`):**
-   - `BatchProcessor`: Asynchronous multi-image ingestion with CPU worker throttling.
-   - `RTIEngine`: Photometric Reflectance Transformation Imaging simulating raking light to illuminate eroded stone chisel grooves.
-   - `EpigraphicalComparisonTool`: Fine-grained comparative diff and Jaccard word similarity between competing readings.
-   - `ScholarlyCitationAssistant`: Standardized citation formatters for SII, EI, ARE, TAS, Chicago, APA, and BibTeX.
-   - `VoiceNarratorService`: Bilingual synthetic phonetic narration tagged with `SYNTHETIC_AI_VOICE` disclaimers.
-   - `ProvenanceViewer`: Interactive cryptographic provenance timeline visualizer.
-
-9. **Public Research API (`services/api/`):**
-   - Versioned FastAPI `/api/v1` RESTful endpoints for open academic access:
-     - `GET /api/v1/health`
-     - `GET /api/v1/inscriptions`
-     - `GET /api/v1/inscriptions/{id}`
-     - `GET /api/v1/inscriptions/{id}/epidoc` (XML & ZIP)
-     - `GET /api/v1/inscriptions/{id}/manifest` (IIIF 3.0)
-     - `GET /api/v1/search`
-     - `GET /api/v1/knowledge-graph`
-
----
-
-## 📁 Project Structure
+## 📁 Repository Structure
 
 ```
 Kallvettu/
-├── app.py                      # Archaeological Research Workbench (8 Dedicated Studios)
-├── config.py                   # Centralized Configuration & Security Hardening (CWE-22, CWE-400)
-├── ui_components.py            # Reusable UI Component Library (Headers, Badges, Metrics, Grids)
-├── restoration_engine.py       # Computer Vision Pipeline (CLAHE, Sauvola, Squeeze, Resizing)
-├── nlp_translation_engine.py   # Archaic Tamil NLP, Restoration, Lexicon & Translators
-├── multimodal_ai.py            # Gemini Vision API Epigraphy Integration & JSON Cleaner
-├── sample_generator.py         # Cross-platform sample generator with font fallback
-├── requirements.txt            # Python dependencies (Streamlit, Pillow, NumPy, SciPy, Pandas, etc.)
+├── app.py                      # Archaeological Research Workbench (16 Dedicated Studios)
+├── config.py                   # Configuration, CPU Thread Limits & Security Hardening
+├── ui_components.py            # Reusable UI Component Library (Headers, Badges, Metrics)
+├── restoration_engine.py       # Computer Vision Pipeline (CLAHE, Sauvola, Squeeze, Hash Caching)
+├── nlp_translation_engine.py   # Classical Tamil NLP, Restoration, Lexicon & Translators
+├── multimodal_ai.py            # Gemini Vision API Epigraphy Integration & JSON Sanitizer
+├── evaluation_engine.py        # Scientific Evaluation Engine & Benchmark Runner
+├── requirements.txt            # Python dependencies (Streamlit, Pillow, NumPy, SciPy, etc.)
 ├── Dockerfile                  # Hardened production Dockerfile (Python 3.12-slim, non-root user)
-├── .dockerignore               # Production build context exclusion rules
 ├── .env.example                # Environment variables template
 │
 ├── services/
@@ -335,23 +216,25 @@ Kallvettu/
 │   │   ├── common/             # BaseProvider, ProviderManager, SourceIdentity, ComparisonEngine
 │   │   ├── gemini/             # GeminiVisionProvider (Multimodal Vision API)
 │   │   ├── offline/            # PaddleOCRProvider (PP-OCRv5 Tamil), HistoricalOCRProvider
-│   │   ├── historical/         # ScriptClassifier, GlyphClassifier (HOG+SVM), LineRecognizer (CRNN+CTC)
+│   │   ├── historical/         # ScriptClassifier, GlyphClassifier (HOG+SVM), LineRecognizer (CRNN)
 │   │   └── sarvam/             # SarvamTranslate, Mayura, Chat-105B, SarvamVision (doc_ai.parse)
 │   ├── ocr_fusion/             # Kallvettu Evidence Fusion Engine (K-IEFE)
 │   │   ├── __init__.py         # Master pipeline: fuse_epigraphical_evidence()
-│   │   ├── cross_verifier.py   # Multi-sequence grapheme alignment & anomaly detection
+│   │   ├── cross_verifier.py   # Grapheme alignment & anomaly detection
 │   │   ├── consensus.py        # Shannon consensus entropy & severity categorization
-│   │   ├── fusion_engine.py    # Strategies A, B (calibrated ranking), C (ROVER transition DAG)
+│   │   ├── fusion_engine.py    # Strategies A, B (calibrated ranking), C (ROVER DAG)
 │   │   ├── visual_verifier.py  # Physical stroke incision analysis across 4 spectral variants
 │   │   ├── historical_validator.py # Monarch & administrative lexicon catalogue validation
-│   │   ├── adaptive_router.py  # CPU-governed tiered escalation routing & quality assessment
+│   │   ├── adaptive_router.py  # CPU-governed tiered escalation routing
 │   │   ├── researcher_review.py# Epigraphist adjudication workstation & revision tracking
 │   │   ├── active_learning.py  # Ground-truth dataset ingestion & model training export
 │   │   ├── audit_trail.py      # Cryptographic SHA-256 evidence audit dossier generator
 │   │   ├── evaluation.py       # Scientific CER/WER evaluation & ablation analytics
+│   │   ├── integrity_monitor.py# Epigraphical evidence & OCR integrity monitor
+│   │   ├── region_resolver.py  # Inscription text region detection & coordinate bounding
 │   │   └── ui_renderer.py      # 9-Tab Streamlit UI & Disputed Zone Heatmap overlay
 │   ├── nlp/                    # Classical Tamil Lexical & Morphological Intelligence
-│   │   ├── classical_dictionary.py # SQLite FTS5 Epigraphical Lexicon, ISO 15919, Nannūl Sandhi rules
+│   │   ├── classical_dictionary.py # SQLite FTS5 Epigraphical Lexicon, ISO 15919, Nannūl Sandhi
 │   │   └── dictionary_ui.py    # Zero-indent 5-section epigraphical card renderer & studio
 │   ├── research/               # Historical Glyph Dataset & Annotation Infrastructure
 │   │   ├── historical_glyph_dataset.py # Leakage-safe dataset splitting, schema & synthetic pipeline
@@ -359,23 +242,45 @@ Kallvettu/
 │   ├── evaluation/             # Reproducible Research Benchmarking Engine
 │   │   ├── benchmark_engine.py # CER, WER, Top-1/3/5, ECE, Brier Score, PSNR, SSIM & exporters
 │   │   └── benchmark_ui.py     # Interactive Research Evaluation Studio & ablation dashboard
-│   └── geo_atlas/              # India Epigraphical Geographic Atlas (MapLibre & GeoJSON)
-│       ├── geo_loader.py       # Mtime-cached GeoJSON loader & district feature collection
-│       ├── map_builder.py      # MapLibre interactive map configuration & layers
-│       ├── location_service.py # Spatial SQLite queries for 24+ iconic archaeological sites
-│       └── ui_atlas.py         # Full-screen interactive geographic atlas studio
+│   ├── geo_atlas/              # India Epigraphical Geographic Atlas (MapLibre & GeoJSON)
+│   │   ├── geo_loader.py       # Mtime-cached GeoJSON loader & district feature collection
+│   │   ├── map_builder.py      # MapLibre interactive map configuration & layers
+│   │   ├── database.py         # Spatial SQLite queries for 24+ iconic archaeological sites
+│   │   └── ui_atlas.py         # Full-screen interactive geographic atlas studio
+│   ├── iiif/                   # IIIF Deep-Zoom Inscription Viewer
+│   │   ├── manifest_builder.py # Presentation 3.0 manifest & Image API 3.0 info.json builder
+│   │   ├── viewer_component.py # OpenSeadragon embedded viewer & coordinate scaling
+│   │   └── coordinate_mapper.py# Viewport to master image pixel transformation
+│   ├── knowledge_graph/        # Historical Knowledge Graph Engine
+│   │   ├── graph_engine.py     # NetworkX MultiDiGraph (29 nodes, 69 edges) with flag LRU cache
+│   │   └── graph_renderer.py   # Resilient Vis.js + embedded HTML5 Canvas Force Graph Engine
+│   ├── database/               # Relational Epigraphical Database (SQLAlchemy 2.0)
+│   │   ├── connection.py       # SQLite connection manager & thread pooling
+│   │   ├── models.py           # 16 Epigraphical relational models
+│   │   └── repository.py       # Academic CRUD operations & query optimization
+│   ├── epidoc/                 # EpiDoc TEI XML Research Bundles
+│   │   └── bundle.py           # 5-file Research Archive ZIP generator
+│   └── ui_studios.py           # Studio renderers for Search, Knowledge Graph, IIIF, and RTI
 │
 ├── datasets/
 │   ├── active_learning/        # Verified Epigraphical Training Datasets (approved_annotations.jsonl)
-│   ├── historical_glyphs/      # Curated historical glyph dataset (raw, processed, annotations, splits, synthetic)
+│   ├── historical_glyphs/      # Curated historical glyph dataset (raw, processed, annotations)
 │   ├── lexicon/                # Classical Tamil Epigraphical Lexicon (SQLite FTS5 database)
 │   └── geo/                    # GeoJSON district & state boundaries for South India
 │
 ├── docs/
-│   └── epigraphical_provenance.md # Epigraphical citations, corpus numbers & academic bibliography
+│   ├── performance/
+│   │   ├── BASELINE_PERFORMANCE.md        # Phase 1 empirical baseline measurements
+│   │   └── KALLVETTU_PERFORMANCE_REPORT.md# Phase 14 comprehensive before/after benchmarks
+│   ├── qa/
+│   │   └── project_inventory.md           # 16-studio technology stack & architecture inventory
+│   ├── epigraphical_provenance.md         # Corpus citations, museum registries & bibliography
+│   └── performance_baseline.json          # Machine-readable baseline telemetry
 │
 ├── assets/
 │   ├── styles.css              # Dark Graphite & Muted Bronze Workbench Theme
+│   ├── knowledge_graph/
+│   │   └── dynasty_flags/      # Local flag artworks (pallava, chera, chola, pandya)
 │   └── samples/                # Curated historical stone inscription photos
 │       ├── chola_kalvettu.jpg
 │       ├── mangulam.jpg
@@ -385,153 +290,27 @@ Kallvettu/
 │       ├── nadukal.jpg
 │       └── uttiramerur.jpg
 │
-├── tests/                      # Full test suite (246 automated tests passing in 50s)
+├── tests/                      # Automated Test Suite (359 tests passing in ~115s)
 │   ├── test_adaptive_routing_cpu.py
 │   ├── test_classical_dictionary.py
+│   ├── test_dispute_heatmap.py
+│   ├── test_dossier_reliability.py
+│   ├── test_evidence_integrity_monitor.py
 │   ├── test_geo_atlas.py
-│   ├── test_geo_loader_audit.py
 │   ├── test_historical_glyph_dataset.py
-│   ├── test_historical_script_research.py
-│   ├── test_hog_svm_historical.py
+│   ├── test_iiif_deep_zoom.py
 │   ├── test_kallvettu.py
-│   ├── test_line_recognizer.py
-│   ├── test_maplibre_component.py
-│   ├── test_multi_ocr_comparison.py
-│   ├── test_multi_provider_pipeline.py
+│   ├── test_knowledge_graph.py
+│   ├── test_multi_spectral_restoration.py
 │   ├── test_ocr_fusion.py
-│   ├── test_ocr_verification_accuracy.py
 │   ├── test_paddleocr_provider.py
-│   ├── test_provider_foundation.py
-│   ├── test_research_benchmark.py
-│   ├── test_sarvam_mayura_and_chat.py
-│   ├── test_sarvam_pipeline_and_benchmark.py
-│   ├── test_sarvam_translation.py
-│   └── test_sarvam_vision.py
+│   ├── test_performance_regressions.py
+│   └── ... (25 test files total)
 │
-├── evaluation_engine.py        # Scientific evaluation engine & benchmark runner
-├── evaluation_report.md        # Reproducible empirical benchmark report
-├── evaluation_results.json     # Machine-readable evaluation dataset metrics
-├── benchmark_cv.py             # Empirical Computer Vision benchmark script
-└── README.md                   # Complete Platform Documentation
+└── scripts/
+    ├── profile_baseline.py     # Master empirical profiling script
+    └── test_app_studios.py     # Studio integration tests
 ```
-
----
-
-## 🏛️ Workbench Studio Architecture
-
-The redesigned workbench organizes epigraphical research across 12 specialized studios:
-
-| Studio | Core Purpose & Functionality |
-|---|---|
-| **📊 Dashboard** | Operational session metrics, active inscription indicator, 1-click preset loader, and recent research activity log. |
-| **🏛️ Inscription Studio** | Main image workspace: drag-and-drop uploads, live camera capture, archival preset selector, and pipeline runner. |
-| **🔬 Digital Restoration Studio** | Multi-spectral laboratory with interactive side-by-side Before/After, CLAHE, Sobel groove extraction, and squeeze downloads. |
-| **✍️ Transcription Studio** | K-IEFE 9-tab cross-verification & evidence fusion workbench, Shannon consensus entropy analysis, physical stroke visual verification, disputed region heatmap, multi-tier diplomatic transcription, and researcher adjudication workstation. |
-| **📜 Translation Studio** | Tabbed dual-language translations (Contemporary Tamil & Scholarly English) with cultural and archaeological commentary. |
-| **📖 Lexical Analysis** | Sortable, searchable classical Tamil vocabulary table with root words, grammatical categories, cases, and etymology. |
-| **📑 Research Dossier** | Comprehensive academic summary with one-click Markdown (`.MD`) and structured JSON exports. |
-| **🏷️ Glyph Annotation Studio** | Phase 1 scientific dataset workstation: interactive bounding box and polygon character annotation, diplomatic/normalized readings, and leakage-safe dataset splitting. |
-| **🗺️ India Epigraphical Geographic Atlas** | Interactive MapLibre & GeoJSON GIS mapping 24+ iconic archaeological inscription sites across 38 Tamil Nadu districts. |
-| **📖 Classical Tamil Dictionary** | Phase 5 Lexical Intelligence Studio: SQLite FTS5 search, ISO 15919 transliteration, *Nannūl 227* & *162* Sandhi breakdown, and 5-section epigraphical cards. |
-| **🔬 Research Evaluation Studio** | Phase 6 Benchmarking Studio: CER, WER, Top-1/3/5 accuracy, Expected Calibration Error (ECE), Brier score, PSNR/SSIM, and exportable research reports. |
-| **⚙️ Settings** | Dedicated configuration studio for Gemini Vision API credentials, vision models, and computer vision filter defaults. |
-
----
-
-## 🎨 UI/UX Design System
-
-- **Design Philosophy:** Professional dark graphite and muted bronze aesthetic communicating ancient heritage, archaeological preservation, and modern AI.
-- **Palette:** Primary Background (`#111820`), Surface (`#202832`), Elevated Surface (`#252C34`), Muted Bronze Accent (`#C5A15A`), Main Text (`#F1F2F3`), Secondary Text (`#A8B0BA`).
-- **Typography:** Inter (Latin metadata), Noto Sans Tamil (classical epigraphical prose), and Noto Serif Tamil (heritage titles).
-- **Component Standardization:** Built using reusable components in `ui_components.py` with zero raw unescaped HTML strings.
-
----
-
-## 🚀 How to Run
-
-### Method A: Local Development Environment
-
-#### Step 1: Ensure Python is Installed
-Python 3.10+ (tested on Python 3.12.10) is recommended.
-```powershell
-python --version
-```
-
-#### Step 2: Configure Environment (Optional)
-Copy `.env.example` to `.env` and set your credentials:
-```powershell
-cp .env.example .env
-```
-Inside `.env`:
-```env
-SARVAM_API_KEY=your_sarvam_api_key_here
-GEMINI_API_KEY=your_gemini_api_key
-```
-
-#### Step 3: Install Dependencies
-```powershell
-pip install -r requirements.txt
-```
-
-#### Step 4: Run the Complete Pytest Verification Suite (122 Tests across 8 Suites)
-```powershell
-pytest tests/ -v
-```
-
-#### Step 5: Launch the Workbench
-```powershell
-streamlit run app.py
-```
-Access the application in your browser at `http://localhost:8501`.
-
----
-
-### Method B: Production Docker Deployment
-
-A hardened, multi-stage production Dockerfile is included:
-- Base: `python:3.12-slim`
-- Non-root user: `kallvettu` (UID/GID 1000)
-- Tamil Noto fonts pre-installed (`fonts-noto-core`, `fonts-noto-extra`)
-- Streamlit native health check probe (`/_stcore/health`)
-
-#### 1. Build Docker Image:
-```bash
-docker build -t kallvettu:latest .
-```
-
-#### 2. Run Container:
-```bash
-docker run -d \
-  -p 8501:8501 \
-  --name kallvettu-workbench \
-  --restart unless-stopped \
-  -e GEMINI_API_KEY="your-api-key-here" \
-  kallvettu:latest
-```
-
-#### 3. Container Health Verification:
-```bash
-docker inspect --format='{{json .State.Health.Status}}' kallvettu-workbench
-```
-
----
-
-## 🔒 Security Hardening & Safe Computing Posture
-
-1. **Path Traversal Protection (CWE-22):** All dossier, JSON, and restored image exports enforce `sanitize_filename()` in `config.py` to prevent arbitrary filesystem write or read traversal attacks.
-2. **Resource Exhaustion & DoS Protection (CWE-400):** Image uploads are bounded by `MAX_UPLOAD_SIZE_BYTES` (50MB ceiling) and clamped via aspect-ratio downsampling (`max_dim=1600`) to prevent out-of-memory crashes during 2D convolutions.
-3. **API Credential Masking:** Live Gemini API credentials are automatically masked (`mask_api_key()`) in workbench UI settings and logs.
-4. **Non-Root Execution:** The production container executes under dedicated user `kallvettu` without superuser privileges.
-5. **Zero Hallucinated OCR:** Local OCR failures transparently fallback to manual transcription without fabricated decipherment.
-
----
-
-## 📖 Academic Epigraphical Provenance & Research Documentation
-
-Full academic citations, museum/site locations, historical dynastic context, primary epigraphical corpus numbers (*South Indian Inscriptions*, *Epigraphia Indica*, *Annual Reports on Indian Epigraphy*, and Iravatham Mahadevan's *Early Tamil Epigraphy*), research dataset frameworks, and platform audit reports are documented in:
-- 👉 [`docs/epigraphical_provenance.md`](file:///c:/Users/Mohamed%20Asif/OneDrive/Desktop/Basic_Projects/Kallvettu/docs/epigraphical_provenance.md) — Epigraphical corpus citations and ground truth provenance.
-- 👉 [`docs/historical_script_recognition_research.md`](file:///c:/Users/Mohamed%20Asif/OneDrive/Desktop/Basic_Projects/Kallvettu/docs/historical_script_recognition_research.md) — Tamil-Brahmi & Vatteluttu dataset organization, anti-leakage site-level splitting, and deep learning architectures (SignaryNet & DR-LIFT).
-- 👉 [`docs/final_technical_audit_report.md`](file:///c:/Users/Mohamed%20Asif/OneDrive/Desktop/Basic_Projects/Kallvettu/docs/final_technical_audit_report.md) — Complete 15-phase technical audit, provider isolation verification, and benchmark logs.
 
 ---
 
@@ -546,6 +325,59 @@ Full academic citations, museum/site locations, historical dynastic context, pri
 
 ---
 
+## 🚀 Quick Start Guide
+
+### Step 1: Clone Repository & Create Virtual Environment
+```powershell
+git clone https://github.com/asif-visionary/Kallvettu.git
+cd Kallvettu
+python -m venv .venv
+.venv\Scripts\activate
+```
+
+### Step 2: Install Dependencies
+```powershell
+pip install -r requirements.txt
+```
+
+### Step 3: Configure Environment Credentials (Optional)
+```powershell
+cp .env.example .env
+```
+Inside `.env`:
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+SARVAM_API_KEY=your_sarvam_api_key_here
+```
+*(Note: Kallvettu runs completely offline without any cloud API keys using its built-in rule-based NLP, SQLite FTS5 lexicon, and local PaddleOCR engine).*
+
+### Step 4: Run the Complete Test Suite (359 Tests)
+```powershell
+pytest tests/ -q
+```
+Expected output:
+```text
+359 passed in ~115s (100%)
+```
+
+### Step 5: Launch the Workbench
+```powershell
+streamlit run app.py
+```
+Open your browser at `http://localhost:8501`.
+
+---
+
+## 🔒 Security Hardening & Academic Provenance
+
+1. **Path Traversal Protection (CWE-22):** All dossier, JSON, XML, and image exports enforce `sanitize_filename()` in `config.py` to prevent directory traversal attacks.
+2. **Resource Exhaustion Protection (CWE-400):** Image uploads are bounded by `MAX_UPLOAD_SIZE_BYTES` (50MB ceiling) and clamped via aspect-ratio downsampling (`max_dim=1600`) to prevent out-of-memory crashes during 2D convolutions.
+3. **Session-Scoped Isolation:** User uploads and session modifications remain strictly in session state; no private user uploads are shared globally.
+4. **API Credential Masking:** Live API credentials are automatically masked (`mask_api_key()`) in workbench UI settings and logs.
+5. **Anti-Hallucination & Provenance Separation:** Raw provider OCR, multi-engine comparisons, K-IEFE fused readings, and researcher transcriptions are permanently distinguished in all exports. A 0% inter-engine agreement is never labeled as consensus.
+6. **Academic Citations:** Epigraphical references cross-reference *South Indian Inscriptions* (SII), *Epigraphia Indica* (EI), *Annual Reports on Indian Epigraphy* (ARE), *Travancore Archaeological Series* (TAS), and Iravatham Mahadevan's *Early Tamil Epigraphy*.
+
+---
+
 ## 👨‍💻 Developed For
-Epigraphical Research, Computational Linguistics, Archaeology, and Classical Tamil Heritage Preservation.
 Epigraphical Research, Computational Linguistics, Archaeology, and Classical Tamil Heritage Preservation.

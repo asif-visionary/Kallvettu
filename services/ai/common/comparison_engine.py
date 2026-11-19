@@ -72,11 +72,16 @@ class DisputedToken:
     @property
     def agreement_ratio(self) -> float:
         if not self.readings:
-            return 1.0
+            return 0.0
+        valid_readings = [v for v in self.readings.values() if v and v.strip()]
+        if len(valid_readings) <= 1:
+            return 0.0
         from collections import Counter
-        counts = Counter(self.readings.values())
+        counts = Counter(valid_readings)
         most_common_cnt = counts.most_common(1)[0][1]
-        return most_common_cnt / len(self.readings)
+        if most_common_cnt == 1:
+            return 0.0
+        return most_common_cnt / len(valid_readings)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -122,6 +127,8 @@ class MultiOCRComparisonResult:
 
     @property
     def consensus_text(self) -> str:
+        if self.consensus_ratio == 0.0 or self.comparison_status in ("insufficient_candidates", "zero_agreement", "single_provider", "no_results"):
+            return ""
         return self.approved_transcription
 
     @property
@@ -322,7 +329,7 @@ class MultiEngineOCRComparator:
             if res and res.text and res.text.strip() and res.metadata.get("transcription_status") != "description_only"
         }
         if len(valid_candidates) < 2:
-            return 1.0 if len(valid_candidates) == 1 else 0.0
+            return 0.0
 
         ratios: List[float] = []
         pids = list(valid_candidates.keys())
@@ -364,9 +371,9 @@ class MultiEngineOCRComparator:
 
             return (
                 [],
-                1.0 if len(valid_candidates) == 1 else 0.0,
+                0.0,
                 total_tok,
-                total_tok,
+                0,
                 0,
                 single_text,
                 "insufficient_candidates",
@@ -452,7 +459,12 @@ class MultiEngineOCRComparator:
 
         total_evaluated = agreed_count + disputed_count
         ratio = (agreed_count / total_evaluated) if total_evaluated > 0 else 0.0
-        default_approved = " ".join(composite_words).strip()
+        if agreed_count == 0 and disputed_count > 0:
+            comp_status = "zero_agreement"
+            default_approved = "[DISPUTED - ZERO INTER-ENGINE AGREEMENT]"
+        else:
+            comp_status = "success"
+            default_approved = " ".join(composite_words).strip()
 
         return (
             disputed_list,
@@ -461,7 +473,7 @@ class MultiEngineOCRComparator:
             agreed_count,
             disputed_count,
             default_approved,
-            "success",
+            comp_status,
             None
         )
 
@@ -614,7 +626,12 @@ class MultiEngineOCRComparator:
 
         total_evaluated = agreed_count + disputed_count
         ratio = (agreed_count / total_evaluated) if total_evaluated > 0 else 0.0
-        default_approved = " ".join(composite_words).strip()
+        if agreed_count == 0 and disputed_count > 0:
+            comp_status = "zero_agreement"
+            default_approved = "[DISPUTED - ZERO INTER-ENGINE AGREEMENT]"
+        else:
+            comp_status = "success"
+            default_approved = " ".join(composite_words).strip()
 
         return (
             disputed_list,
@@ -623,7 +640,7 @@ class MultiEngineOCRComparator:
             agreed_count,
             disputed_count,
             default_approved,
-            "success",
+            comp_status,
             None
         )
 

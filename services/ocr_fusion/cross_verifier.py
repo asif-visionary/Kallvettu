@@ -221,7 +221,7 @@ class EpigraphicalCrossVerifier:
                 total_character_slots=0,
                 agreed_character_slots=0,
                 disputed_character_slots=0,
-                agreement_ratio=1.0 if not results else 0.0,
+                agreement_ratio=0.0,
                 repeated_character_anomalies=[],
                 missing_regions=[],
                 provider_names=provider_names,
@@ -239,7 +239,7 @@ class EpigraphicalCrossVerifier:
                     raw_by_provider={pid: g},
                     normalized_by_provider={pid: normalize_for_comparison(g)},
                     candidate_character=g,
-                    status="identical",
+                    status="single_provider",
                     is_disputed=False,
                     providers_supporting=[pid],
                     confidence_by_provider={pid: res.confidence}
@@ -251,7 +251,7 @@ class EpigraphicalCrossVerifier:
                     word_index=w_idx,
                     raw_by_provider={pid: w},
                     normalized_by_provider={pid: normalize_for_comparison(w)},
-                    status="identical",
+                    status="single_provider",
                     is_disputed=False,
                     providers_supporting=[pid]
                 ))
@@ -265,9 +265,9 @@ class EpigraphicalCrossVerifier:
                 word_alignments=word_units,
                 line_alignments=line_units,
                 total_character_slots=len(char_units),
-                agreed_character_slots=len(char_units),
+                agreed_character_slots=0,
                 disputed_character_slots=0,
-                agreement_ratio=1.0,
+                agreement_ratio=0.0,
                 repeated_character_anomalies=self.detect_repeated_character_anomalies(active_results),
                 missing_regions=self._detect_missing_regions(results),
                 provider_names=provider_names,
@@ -305,7 +305,7 @@ class EpigraphicalCrossVerifier:
         total_slots = len(char_units)
         disputed_slots = sum(1 for c in char_units if c.is_disputed)
         agreed_slots = total_slots - disputed_slots
-        agreement_ratio = (agreed_slots / total_slots) if total_slots > 0 else 1.0
+        agreement_ratio = (agreed_slots / total_slots) if total_slots > 0 else 0.0
 
         return CrossVerificationReport(
             character_alignments=char_units,
@@ -351,7 +351,7 @@ class EpigraphicalCrossVerifier:
                     raw_by_provider={ref_id: g},
                     normalized_by_provider={ref_id: normalize_for_comparison(g)},
                     candidate_character=g,
-                    status="identical",
+                    status="single_provider",
                     is_disputed=False,
                     providers_supporting=[ref_id],
                     confidence_by_provider={ref_id: results[ref_id].confidence}

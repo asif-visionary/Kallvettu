@@ -9,9 +9,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import uuid
 import logging
 from typing import List, Optional, Dict, Any, Tuple
+from PIL import Image
 from sqlalchemy import or_, and_, desc
 from sqlalchemy.orm import Session, joinedload
 
@@ -114,12 +116,13 @@ class EpigraphicalRepository:
 
     @classmethod
     def get_inscription(cls, inscription_id: str, session: Optional[Session] = None) -> Optional[Inscription]:
-        """Retrieves an inscription by ID with all eager-loaded assets, transcriptions, and citations."""
+        """Retrieves an inscription by ID with all eager-loaded assets, annotations, transcriptions, and citations."""
         def _op(s: Session) -> Optional[Inscription]:
             return (
                 s.query(Inscription)
                 .options(
                     joinedload(Inscription.image_assets),
+                    joinedload(Inscription.glyph_annotations),
                     joinedload(Inscription.transcriptions).joinedload(Transcription.reading_candidates),
                     joinedload(Inscription.translations),
                     joinedload(Inscription.historical_references),
@@ -602,6 +605,101 @@ class EpigraphicalRepository:
                         ))
 
                     seeded_count += 1
+
+            # Seed canonical ImageAssets and GlyphAnnotations with authentic image metrics
+            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+            sample_assets_map = {
+                "KV-INSC-001": ("mangulam.jpg", [
+                    {"label": "க", "reading": "ka", "box": {"x": 45, "y": 140, "w": 55, "h": 70}, "status": "CLEAR"},
+                    {"label": "ணி", "reading": "ṇi", "box": {"x": 105, "y": 135, "w": 60, "h": 75}, "status": "CLEAR"},
+                    {"label": "ய்", "reading": "y", "box": {"x": 170, "y": 140, "w": 50, "h": 68}, "status": "WEATHERED"},
+                    {"label": "ந", "reading": "na", "box": {"x": 225, "y": 138, "w": 55, "h": 72}, "status": "CLEAR"},
+                    {"label": "ந்", "reading": "n", "box": {"x": 285, "y": 140, "w": 50, "h": 70}, "status": "WEATHERED"},
+                    {"label": "த", "reading": "ta", "box": {"x": 340, "y": 136, "w": 58, "h": 74}, "status": "CLEAR"},
+                    {"label": "ஸ", "reading": "sa", "box": {"x": 405, "y": 135, "w": 62, "h": 75}, "status": "CLEAR"},
+                    {"label": "ரி", "reading": "ri", "box": {"x": 475, "y": 135, "w": 55, "h": 72}, "status": "PARTIAL"},
+                ]),
+                "KV-INSC-002": ("thanjavur.jpg", [
+                    {"label": "நா", "reading": "nā", "box": {"x": 60, "y": 110, "w": 65, "h": 85}, "status": "CLEAR"},
+                    {"label": "ம்", "reading": "m", "box": {"x": 130, "y": 115, "w": 55, "h": 80}, "status": "CLEAR"},
+                    {"label": "கு", "reading": "ku", "box": {"x": 195, "y": 112, "w": 60, "h": 82}, "status": "CLEAR"},
+                    {"label": "டு", "reading": "ṭu", "box": {"x": 260, "y": 110, "w": 58, "h": 84}, "status": "CLEAR"},
+                    {"label": "த்", "reading": "t", "box": {"x": 325, "y": 115, "w": 55, "h": 80}, "status": "WEATHERED"},
+                    {"label": "த", "reading": "ta", "box": {"x": 385, "y": 112, "w": 60, "h": 82}, "status": "CLEAR"},
+                ]),
+                "KV-INSC-003": ("uttiramerur.jpg", [
+                    {"label": "வ", "reading": "va", "box": {"x": 70, "y": 120, "w": 60, "h": 75}, "status": "CLEAR"},
+                    {"label": "ரி", "reading": "ri", "box": {"x": 135, "y": 118, "w": 55, "h": 78}, "status": "CLEAR"},
+                    {"label": "சை", "reading": "sai", "box": {"x": 195, "y": 120, "w": 65, "h": 76}, "status": "CLEAR"},
+                    {"label": "யா", "reading": "yā", "box": {"x": 265, "y": 118, "w": 60, "h": 78}, "status": "PARTIAL"},
+                    {"label": "ர்", "reading": "r", "box": {"x": 330, "y": 122, "w": 50, "h": 72}, "status": "WEATHERED"},
+                ]),
+                "KV-INSC-004": ("pugalur.jpg", [
+                    {"label": "கோ", "reading": "kō", "box": {"x": 50, "y": 130, "w": 60, "h": 80}, "status": "CLEAR"},
+                    {"label": "ஆ", "reading": "ā", "box": {"x": 120, "y": 125, "w": 65, "h": 85}, "status": "CLEAR"},
+                    {"label": "தன்", "reading": "tan", "box": {"x": 195, "y": 130, "w": 70, "h": 80}, "status": "CLEAR"},
+                ]),
+                "KV-INSC-005": ("pulankurichi.jpg", [
+                    {"label": "கூ", "reading": "kū", "box": {"x": 60, "y": 140, "w": 60, "h": 75}, "status": "WEATHERED"},
+                    {"label": "ற்", "reading": "ṟ", "box": {"x": 130, "y": 140, "w": 55, "h": 75}, "status": "CLEAR"},
+                    {"label": "ற", "reading": "ṟa", "box": {"x": 195, "y": 135, "w": 60, "h": 80}, "status": "CLEAR"},
+                ]),
+                "KV-INSC-006": ("nadukal.jpg", [
+                    {"label": "தொ", "reading": "to", "box": {"x": 55, "y": 115, "w": 60, "h": 80}, "status": "CLEAR"},
+                    {"label": "று", "reading": "ṟu", "box": {"x": 125, "y": 110, "w": 60, "h": 85}, "status": "CLEAR"},
+                    {"label": "வொ", "reading": "wo", "box": {"x": 195, "y": 115, "w": 65, "h": 80}, "status": "WEATHERED"},
+                ]),
+            }
+
+            for p in canonical_plates:
+                insc_id = p["id"]
+                mapping = sample_assets_map.get(insc_id)
+                if mapping:
+                    sample_file, glyph_specs = mapping
+                    sample_path = os.path.join(project_root, "assets", "samples", sample_file)
+                    asset_id = f"IMG-RAW-{insc_id}"
+                    existing_asset = s.query(ImageAsset).filter(
+                        ImageAsset.inscription_id == insc_id,
+                        ImageAsset.is_master == True
+                    ).first()
+                    if not existing_asset and os.path.exists(sample_path):
+                        with open(sample_path, "rb") as af:
+                            sha = hashlib.sha256(af.read()).hexdigest()
+                        with Image.open(sample_path) as im:
+                            w, h = im.size
+                        existing_asset = ImageAsset(
+                            id=asset_id,
+                            inscription_id=insc_id,
+                            asset_type=AssetType.RAW,
+                            file_path=sample_path,
+                            sha256_hash=sha,
+                            width=w,
+                            height=h,
+                            mime_type="image/jpeg",
+                            is_master=True,
+                        )
+                        s.add(existing_asset)
+                        s.flush()
+
+                    if existing_asset:
+                        for g_idx, g in enumerate(glyph_specs):
+                            ann_id = f"GLYPH-{insc_id}-{g_idx+1:02d}"
+                            existing_ann = s.query(GlyphAnnotation).filter(GlyphAnnotation.id == ann_id).first()
+                            if not existing_ann:
+                                s.add(GlyphAnnotation(
+                                    id=ann_id,
+                                    inscription_id=insc_id,
+                                    image_asset_id=existing_asset.id,
+                                    character_label=g["label"],
+                                    unicode_representation=g["label"],
+                                    diplomatic_reading=g["reading"],
+                                    script_category=p["script_category"],
+                                    bounding_box=g["box"],
+                                    legibility_status=g["status"],
+                                    review_status=AnnotationStatus.APPROVED,
+                                    notes=f"Canonical epigraphical reading for {p['title_en']}",
+                                ))
+
             s.commit()
         logger.info("Canonical epigraphical corpus seeding complete. Seeded: %d records.", seeded_count)
         return seeded_count

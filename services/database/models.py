@@ -100,6 +100,7 @@ class EntityCategory(str, enum.Enum):
     TAX = "TAX"
     GRANT = "GRANT"
     INSCRIPTION = "INSCRIPTION"
+    HISTORICAL_EVENT = "HISTORICAL_EVENT"
 
 
 # --------------------------------------------------------------------------

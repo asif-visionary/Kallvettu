@@ -22,7 +22,8 @@ class DisagreementSeverity:
     STRONG_CONSENSUS = "strong_consensus"# 0.0 < H <= 0.5 (One candidate dominates)
     DIVIDED = "divided"                  # 0.5 < H <= 1.0 (Competing alternative candidates)
     HIGH_DISPUTE = "high_dispute"        # H > 1.0 (Severe multi-way disagreement or divergence)
-    SINGLE_PROVIDER = "single_provider"  # Only one provider evaluated
+    SINGLE_PROVIDER = "single_provider"  # Only one provider evaluated (insufficient evidence)
+    NOT_ASSESSABLE = "not_assessable"    # Missing data or omitted slot (cannot compute)
 
 
 @dataclass
@@ -38,6 +39,8 @@ class PositionEntropyResult:
     dominant_candidate: str
     dominant_margin: float               # P(c_1) - P(c_2)
     participating_providers_count: int
+    normalized_entropy: Optional[float] = None # H / log2(K) if K > 1 else (0.0 if K == 1 else None)
+    is_assessable: bool = True           # False if single provider or missing data
 
 
 @dataclass
@@ -54,9 +57,10 @@ class ConsensusReport:
     position_entropy_details: List[PositionEntropyResult]
     severity_distribution: Dict[str, int]
     epigraphical_disclaimer: str = (
-        "Consensus entropy measures model dispersion, NOT historical veracity. "
-        "Unanimous agreement across engines does not eliminate the possibility of shared "
-        "pre-processing bias on weathered incisions. Disputed readings require epigraphist review."
+        "Consensus entropy measures model dispersion, not historical veracity. "
+        "Unanimous agreement does not eliminate correlated recognition errors caused by shared "
+        "preprocessing, image artifacts or surface degradation. Physical inscription evidence "
+        "and epigraphist review remain essential."
     )
 
     def to_dict(self) -> Dict[str, Any]:
@@ -75,7 +79,9 @@ class ConsensusReport:
                 {
                     "position_index": p.position_index,
                     "entropy": round(p.entropy, 4),
+                    "normalized_entropy": round(p.normalized_entropy, 4) if p.normalized_entropy is not None else None,
                     "severity": p.severity,
+                    "is_assessable": p.is_assessable,
                     "dominant_candidate": p.dominant_candidate,
                     "distinct_candidates": p.distinct_candidates,
                     "candidate_distribution": {k: round(v, 4) for k, v in p.candidate_distribution.items()},
@@ -97,8 +103,9 @@ class ConsensusEntropyCalculator:
         provider_weights: Optional[Dict[str, float]] = None
     ) -> PositionEntropyResult:
         """
-        Calculates Shannon entropy for an aligned character slot:
+        Calculates Shannon entropy and normalized entropy for an aligned character slot:
         H(X) = - sum( P(c) * log2(P(c)) )
+        H_norm(X) = H(X) / log2(K) when K > 1
         """
         raw_map = alignment_unit.normalized_by_provider
         # Filter out gap characters '-' and empty strings
@@ -108,14 +115,16 @@ class ConsensusEntropyCalculator:
             return PositionEntropyResult(
                 position_index=alignment_unit.position_index,
                 entropy=0.0,
-                severity=DisagreementSeverity.UNANIMOUS,
+                severity=DisagreementSeverity.NOT_ASSESSABLE,
                 distinct_candidates=[],
                 candidate_distribution={},
-                is_unanimous=True,
+                is_unanimous=False,
                 is_disputed=False,
                 dominant_candidate="",
-                dominant_margin=1.0,
-                participating_providers_count=0
+                dominant_margin=0.0,
+                participating_providers_count=0,
+                normalized_entropy=None,
+                is_assessable=False,
             )
 
         if len(valid_candidates) == 1:
@@ -126,11 +135,13 @@ class ConsensusEntropyCalculator:
                 severity=DisagreementSeverity.SINGLE_PROVIDER,
                 distinct_candidates=[cand],
                 candidate_distribution={cand: 1.0},
-                is_unanimous=True,
+                is_unanimous=False,
                 is_disputed=False,
                 dominant_candidate=cand,
                 dominant_margin=1.0,
-                participating_providers_count=1
+                participating_providers_count=1,
+                normalized_entropy=0.0,
+                is_assessable=False,
             )
 
         # Weight distribution
@@ -163,9 +174,18 @@ class ConsensusEntropyCalculator:
         second_prob = sorted_cands[1][1] if len(sorted_cands) > 1 else 0.0
         margin = dominant_prob - second_prob
 
-        # Categorize severity
+        # Categorize severity and compute normalized entropy
         distinct = list(candidate_weights.keys())
-        if len(distinct) == 1:
+        k = len(distinct)
+        if k > 1:
+            norm_entropy = float(entropy / math.log2(k))
+            norm_entropy = max(0.0, min(1.0, norm_entropy))
+        elif k == 1:
+            norm_entropy = 0.0
+        else:
+            norm_entropy = None
+
+        if k == 1:
             severity = DisagreementSeverity.UNANIMOUS
             is_disputed = False
         elif entropy <= 0.5:
@@ -184,11 +204,13 @@ class ConsensusEntropyCalculator:
             severity=severity,
             distinct_candidates=distinct,
             candidate_distribution=probs,
-            is_unanimous=(len(distinct) == 1),
+            is_unanimous=(k == 1),
             is_disputed=is_disputed,
             dominant_candidate=dominant_cand,
             dominant_margin=float(margin),
-            participating_providers_count=len(valid_candidates)
+            participating_providers_count=len(valid_candidates),
+            normalized_entropy=norm_entropy,
+            is_assessable=True,
         )
 
     @classmethod
@@ -218,6 +240,7 @@ class ConsensusEntropyCalculator:
                     DisagreementSeverity.DIVIDED: 0,
                     DisagreementSeverity.HIGH_DISPUTE: 0,
                     DisagreementSeverity.SINGLE_PROVIDER: 0,
+                    DisagreementSeverity.NOT_ASSESSABLE: 0,
                 }
             )
 
@@ -228,6 +251,7 @@ class ConsensusEntropyCalculator:
             DisagreementSeverity.DIVIDED: 0,
             DisagreementSeverity.HIGH_DISPUTE: 0,
             DisagreementSeverity.SINGLE_PROVIDER: 0,
+            DisagreementSeverity.NOT_ASSESSABLE: 0,
         }
         high_dispute_positions = []
         entropies = []
@@ -242,8 +266,8 @@ class ConsensusEntropyCalculator:
                 high_dispute_positions.append(pos_res.position_index)
 
         total_slots = len(slots)
-        unanimous_count = severity_counts.get(DisagreementSeverity.UNANIMOUS, 0) + severity_counts.get(DisagreementSeverity.SINGLE_PROVIDER, 0)
-        disputed_count = total_slots - unanimous_count
+        disputed_count = sum(1 for p in position_details if p.is_disputed)
+        unanimous_count = total_slots - disputed_count
         mean_ent = float(sum(entropies) / total_slots) if total_slots > 0 else 0.0
         max_ent = float(max(entropies)) if entropies else 0.0
 

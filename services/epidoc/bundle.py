@@ -47,6 +47,21 @@ def create_epidoc_research_bundle(
     commentary = inscription_data.get("historical_commentary", desc)
     citation = inscription_data.get("citation", "Archaeological Survey of India")
 
+    dossier_status = inscription_data.get("dossier_status") or (
+        "APPROVED" if inscription_data.get("is_researcher_approved") else "UNVERIFIED"
+    )
+    provenance_type = inscription_data.get("provenance_type") or (
+        "RESEARCHER_TRANSCRIPTION" if inscription_data.get("is_researcher_approved") else "AI_GENERATED_SUGGESTION"
+    )
+    script_family = inscription_data.get("script_family", script)
+    script_variant = inscription_data.get("script_variant", "UNDETERMINED")
+    language = inscription_data.get("language", "Old Tamil / Inscriptional Tamil")
+    segmented = inscription_data.get("word_segmented_text", "")
+    seg_status = inscription_data.get("segmentation_status", "UNVERIFIED")
+
+    safe_ta_trans = ta_trans or "Translation unavailable: the underlying transcription requires epigraphical verification."
+    safe_en_trans = en_trans or "Translation unavailable: the underlying transcription requires epigraphical verification."
+
     # 1. Generate EpiDoc XML
     xml_content = generate_epidoc_xml(
         inscription_id=insc_id,
@@ -65,8 +80,8 @@ def create_epidoc_research_bundle(
         description=desc,
         diplomatic_text=diplomatic,
         normalized_text=normalized,
-        english_translation=en_trans,
-        tamil_translation=ta_trans,
+        english_translation=safe_en_trans,
+        tamil_translation=safe_ta_trans,
         historical_commentary=commentary,
         citation=citation,
     )
@@ -76,9 +91,12 @@ def create_epidoc_research_bundle(
 KALLVETTU EPIGRAPHICAL TRANSCRIPTION DOSSIER
 ================================================================================
 Inscription ID : {insc_id}
+Dossier Status : {dossier_status}
+Provenance     : {provenance_type}
 Title (English): {title_en}
 Title (Tamil)  : {title_ta}
-Script         : {script}
+Script         : {script} (Family: {script_family}, Variant: {script_variant})
+Language       : {language}
 Period         : {period}
 Site           : {site}, {district}, {state}
 Ruler / Dynasty: {ruler} ({dynasty})
@@ -92,6 +110,11 @@ TIER 1: DIPLOMATIC TRANSCRIPTION (LITHIC VERBATIM WITH LACUNAE)
 TIER 2: NORMALIZED EPIGRAPHICAL TRANSCRIPTION (STANDARD TAMIL UNICODE)
 --------------------------------------------------------------------------------
 {normalized}
+
+--------------------------------------------------------------------------------
+TIER 3: WORD-SEGMENTED READING [{seg_status}]
+--------------------------------------------------------------------------------
+{segmented if segmented else "[Unsegmented raw sequence / Pending epigraphist segmentation]"}
 ================================================================================
 """
 
@@ -100,16 +123,18 @@ TIER 2: NORMALIZED EPIGRAPHICAL TRANSCRIPTION (STANDARD TAMIL UNICODE)
 KALLVETTU SCHOLARLY TRANSLATION & COMMENTARY
 ================================================================================
 Inscription ID: {insc_id}
+Status        : {dossier_status}
+Provenance    : {provenance_type}
 
 --------------------------------------------------------------------------------
 1. CONTEMPORARY MODERN TAMIL TRANSLATION (இக்காலத் தமிழ் உரைநடை)
 --------------------------------------------------------------------------------
-{ta_trans}
+{safe_ta_trans}
 
 --------------------------------------------------------------------------------
 2. SCHOLARLY ENGLISH TRANSLATION
 --------------------------------------------------------------------------------
-{en_trans}
+{safe_en_trans}
 
 --------------------------------------------------------------------------------
 3. HISTORICAL & EPIGRAPHICAL COMMENTARY
@@ -126,10 +151,15 @@ Bibliographic Citation:
         {
             "schema_version": "3.1.0",
             "kallvettu_id": insc_id,
+            "dossier_status": dossier_status,
+            "provenance_type": provenance_type,
             "metadata": {
                 "title_en": title_en,
                 "title_ta": title_ta,
                 "script_category": script,
+                "script_family": script_family,
+                "script_variant": script_variant,
+                "language": language,
                 "historical_period": period,
                 "site_name": site,
                 "district": district,
@@ -144,10 +174,12 @@ Bibliographic Citation:
             "transcriptions": {
                 "diplomatic": diplomatic,
                 "normalized": normalized,
+                "word_segmented": segmented,
+                "segmentation_status": seg_status,
             },
             "translations": {
-                "english": en_trans,
-                "tamil": ta_trans,
+                "english": safe_en_trans,
+                "tamil": safe_ta_trans,
             },
             "commentary": commentary,
             "epidoc_xml_filename": "inscription.xml",
@@ -159,9 +191,11 @@ Bibliographic Citation:
     # 5. Generate research_report.md
     markdown_report = f"""# 🏛️ Epigraphical Research Dossier: {title_en}
 
+**Scientific Dossier Status:** `{dossier_status}` | **Transcription Provenance:** `{provenance_type}`  
 **Local Inscription Title:** {title_ta}  
 **Registry Identifier:** `{insc_id}`  
-**Palaeographical Script:** {script}  
+**Palaeographical Script:** {script} (Family: {script_family}, Variant: {script_variant})  
+**Language:** {language}  
 **Historical Epoch:** {period} ({century})  
 **Provenance / Site:** {site}, {district}, {state}  
 **Associated Monarch:** {ruler} ({dynasty}, {regnal})  
@@ -171,14 +205,19 @@ Bibliographic Citation:
 
 ## 1. Palaeographic Transcriptions
 
-### Diplomatic Reading (Lithic Verbatim)
+### Tier 1: Diplomatic Reading (Lithic Verbatim)
 ```text
 {diplomatic}
 ```
 
-### Normalized Standard Orthography
+### Tier 2: Normalized Standard Orthography
 ```text
 {normalized}
+```
+
+### Tier 3: Word-Segmented Reading [{seg_status}]
+```text
+{segmented if segmented else "[Unsegmented raw sequence / Pending epigraphist segmentation]"}
 ```
 
 ---
@@ -186,10 +225,10 @@ Bibliographic Citation:
 ## 2. Bilingual Translations
 
 ### Contemporary Modern Tamil
-> {ta_trans}
+> {safe_ta_trans}
 
 ### Scholarly English
-> {en_trans}
+> {safe_en_trans}
 
 ---
 

@@ -23,6 +23,8 @@ from services.ocr_fusion.historical_validator import HistoricalEvidenceMatch
 class AdjudicationDecision(str, Enum):
     """Researcher adjudication decisions for a disputed reading."""
     PENDING = "pending"              # Awaiting scholar inspection
+    DISPUTED = "disputed"            # Formally marked as contested reading
+    REQUIRES_REVIEW = "requires_review" # Flagged for expert review
     ACCEPTED_FUSION = "accepted_fusion" # Fused candidate accepted without changes
     ACCEPTED_PROVIDER = "accepted_provider" # Specific engine's reading selected
     EDITED_SCHOLAR = "edited_scholar"# Manually revised by epigraphist
@@ -72,6 +74,13 @@ class AdjudicationItem:
     current_decision: str = AdjudicationDecision.PENDING.value
     approved_text: str = ""
     revision_history: List[ReviewRevisionEntry] = field(default_factory=list)
+    normalized_entropy: Optional[float] = None
+    candidate_distribution: Optional[Dict[str, float]] = None
+    participating_providers_count: int = 0
+    is_assessable: bool = True
+    scholarly_notes: List[str] = field(default_factory=list)
+    supporting_physical_evidence: List[str] = field(default_factory=list)
+    is_researcher_approved: bool = False
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -88,10 +97,17 @@ class AdjudicationItem:
             "alternative_readings": self.alternative_readings,
             "disagreement_reason": self.disagreement_reason,
             "consensus_entropy": round(self.consensus_entropy, 4),
+            "normalized_entropy": round(self.normalized_entropy, 4) if self.normalized_entropy is not None else None,
+            "candidate_distribution": self.candidate_distribution,
+            "participating_providers_count": self.participating_providers_count,
+            "is_assessable": self.is_assessable,
             "visual_hypothesis": self.visual_hypothesis,
             "historical_evidence": self.historical_evidence,
             "current_decision": self.current_decision,
             "approved_text": self.approved_text,
+            "scholarly_notes": self.scholarly_notes,
+            "supporting_physical_evidence": self.supporting_physical_evidence,
+            "is_researcher_approved": self.is_researcher_approved,
             "revision_history": [r.to_dict() for r in self.revision_history],
         }
 
@@ -146,6 +162,152 @@ class ResearcherReviewManager:
 
         item.current_decision = decision.value
         item.approved_text = approved_text
+        if decision in [
+            AdjudicationDecision.ACCEPTED_FUSION,
+            AdjudicationDecision.ACCEPTED_PROVIDER,
+            AdjudicationDecision.EDITED_SCHOLAR,
+            AdjudicationDecision.MARK_ILLEGIBLE,
+        ]:
+            item.is_researcher_approved = True
         item.revision_history.append(rev_entry)
         return item
+
+    def mark_as_disputed(
+        self,
+        item_id: str,
+        reason: str = "Disputed by epigraphist review",
+        reviewer: str = "Epigraphist"
+    ) -> AdjudicationItem:
+        """Flags an adjudication item as formally disputed."""
+        item = self.get_item(item_id)
+        if not item:
+            raise KeyError(f"Item {item_id} not found")
+        item.disagreement_reason = f"{item.disagreement_reason}; {reason}".strip("; ")
+        if reason not in item.scholarly_notes:
+            item.scholarly_notes.append(reason)
+        return self.record_decision(
+            item_id,
+            AdjudicationDecision.DISPUTED,
+            item.approved_text or item.fused_candidate,
+            reviewer=reviewer,
+            rationale=reason
+        )
+
+    def mark_as_requiring_review(
+        self,
+        item_id: str,
+        reviewer: str = "Epigraphist",
+        notes: str = "Flagged for in-depth specialist review"
+    ) -> AdjudicationItem:
+        """Marks a reading as requiring specialist re-examination."""
+        item = self.get_item(item_id)
+        if not item:
+            raise KeyError(f"Item {item_id} not found")
+        if notes and notes not in item.scholarly_notes:
+            item.scholarly_notes.append(notes)
+        return self.record_decision(
+            item_id,
+            AdjudicationDecision.REQUIRES_REVIEW,
+            item.approved_text or item.fused_candidate,
+            reviewer=reviewer,
+            rationale=notes
+        )
+
+    def add_alternative_reading(
+        self,
+        item_id: str,
+        alternative_reading: str,
+        reviewer: str = "Epigraphist",
+        notes: str = ""
+    ) -> AdjudicationItem:
+        """Adds a candidate interpretation or variant reading without overwriting current approved text."""
+        item = self.get_item(item_id)
+        if not item:
+            raise KeyError(f"Item {item_id} not found")
+        clean_alt = alternative_reading.strip()
+        if clean_alt and clean_alt not in item.alternative_readings:
+            item.alternative_readings.append(clean_alt)
+        msg = f"Added alternative candidate '{clean_alt}'"
+        if notes:
+            msg += f" ({notes})"
+            item.scholarly_notes.append(f"Alt '{clean_alt}': {notes}")
+        rev_entry = ReviewRevisionEntry(
+            revision_id=len(item.revision_history) + 1,
+            timestamp=time.strftime("%Y-%m-%d %H:%M:%S"),
+            reviewer_identity=reviewer,
+            decision="add_alternative",
+            previous_reading=item.approved_text or item.fused_candidate,
+            approved_reading=item.approved_text or item.fused_candidate,
+            rationale=msg
+        )
+        item.revision_history.append(rev_entry)
+        return item
+
+    def add_scholarly_note(
+        self,
+        item_id: str,
+        note: str,
+        reviewer: str = "Epigraphist"
+    ) -> AdjudicationItem:
+        """Attaches a scholarly or palaeographical annotation to the item."""
+        item = self.get_item(item_id)
+        if not item:
+            raise KeyError(f"Item {item_id} not found")
+        clean_note = note.strip()
+        if clean_note:
+            item.scholarly_notes.append(clean_note)
+            rev_entry = ReviewRevisionEntry(
+                revision_id=len(item.revision_history) + 1,
+                timestamp=time.strftime("%Y-%m-%d %H:%M:%S"),
+                reviewer_identity=reviewer,
+                decision="scholarly_note",
+                previous_reading=item.approved_text or item.fused_candidate,
+                approved_reading=item.approved_text or item.fused_candidate,
+                rationale=clean_note
+            )
+            item.revision_history.append(rev_entry)
+        return item
+
+    def record_physical_evidence(
+        self,
+        item_id: str,
+        evidence: str,
+        reviewer: str = "Epigraphist"
+    ) -> AdjudicationItem:
+        """Records physical carved incision evidence observed on stone."""
+        item = self.get_item(item_id)
+        if not item:
+            raise KeyError(f"Item {item_id} not found")
+        clean_ev = evidence.strip()
+        if clean_ev:
+            item.supporting_physical_evidence.append(clean_ev)
+            rev_entry = ReviewRevisionEntry(
+                revision_id=len(item.revision_history) + 1,
+                timestamp=time.strftime("%Y-%m-%d %H:%M:%S"),
+                reviewer_identity=reviewer,
+                decision="record_physical_evidence",
+                previous_reading=item.approved_text or item.fused_candidate,
+                approved_reading=item.approved_text or item.fused_candidate,
+                rationale=f"Physical stone evidence: {clean_ev}"
+            )
+            item.revision_history.append(rev_entry)
+        return item
+
+    def is_approved(self, item_id: str) -> bool:
+        """Returns True if the reading has been verified and approved by a researcher."""
+        item = self.get_item(item_id)
+        if not item:
+            return False
+        return (
+            item.is_researcher_approved
+            or (
+                item.current_decision in [
+                    AdjudicationDecision.ACCEPTED_FUSION.value,
+                    AdjudicationDecision.ACCEPTED_PROVIDER.value,
+                    AdjudicationDecision.EDITED_SCHOLAR.value,
+                    AdjudicationDecision.MARK_ILLEGIBLE.value,
+                ]
+                and len(item.revision_history) > 0
+            )
+        )
 
